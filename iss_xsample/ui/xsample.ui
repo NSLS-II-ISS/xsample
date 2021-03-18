@@ -291,42 +291,13 @@
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QWidget" name="horizontalLayoutWidget_2">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>780</y>
-      <width>246</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
-     <item>
-      <widget class="QRadioButton" name="radioButton_current_control">
-       <property name="text">
-        <string>Current control</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QRadioButton" name="radioButton_voltage_control">
-       <property name="text">
-        <string>Voltage control</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
    <widget class="QTableWidget" name="tableWidget_program">
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>820</y>
+      <y>890</y>
       <width>441</width>
-      <height>301</height>
+      <height>231</height>
      </rect>
     </property>
    </widget>
@@ -391,7 +362,7 @@
       <x>10</x>
       <y>10</y>
       <width>671</width>
-      <height>751</height>
+      <height>861</height>
      </rect>
     </property>
     <property name="title">
@@ -403,7 +374,7 @@
        <x>10</x>
        <y>20</y>
        <width>651</width>
-       <height>381</height>
+       <height>351</height>
       </rect>
      </property>
      <property name="title">
@@ -1095,7 +1066,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>380</y>
+       <y>370</y>
        <width>651</width>
        <height>361</height>
       </rect>
@@ -1839,124 +1810,172 @@
      <zorder>gridLayoutWidget_6</zorder>
      <zorder>radioButton_14</zorder>
     </widget>
-   </widget>
-   <widget class="QLabel" name="label_CH4">
-    <property name="geometry">
-     <rect>
-      <x>600</x>
-      <y>780</y>
-      <width>59</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>CH4</string>
-    </property>
-   </widget>
-   <widget class="QDoubleSpinBox" name="spinBox_CH4">
-    <property name="geometry">
-     <rect>
-      <x>510</x>
-      <y>780</y>
-      <width>71</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="decimals">
-     <number>1</number>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_CO">
-    <property name="geometry">
-     <rect>
-      <x>600</x>
-      <y>820</y>
-      <width>59</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>CO</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_2">
-    <property name="geometry">
-     <rect>
-      <x>430</x>
-      <y>820</y>
-      <width>71</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Carbon 
+    <widget class="QGroupBox" name="groupBox_4">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>730</y>
+       <width>651</width>
+       <height>121</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Portable cart</string>
+     </property>
+     <widget class="QWidget" name="gridLayoutWidget_7">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>20</y>
+        <width>321</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_8">
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Carbon 
 monoxide</string>
-    </property>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>Methane</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QLabel" name="label_CH4">
+         <property name="text">
+          <string>CH4</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Hydrogen</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QDoubleSpinBox" name="spinBox_H2">
+         <property name="decimals">
+          <number>1</number>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QLabel" name="label_H2">
+         <property name="text">
+          <string>H2</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QDoubleSpinBox" name="spinBox_CH4">
+         <property name="decimals">
+          <number>1</number>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QDoubleSpinBox" name="spinBox_CO">
+         <property name="decimals">
+          <number>1</number>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QLabel" name="label_CO">
+         <property name="text">
+          <string>CO</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="3">
+        <widget class="QLabel" name="label_cart_mfcCH4_status">
+         <property name="maximumSize">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
+         </property>
+         <property name="autoFillBackground">
+          <bool>true</bool>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QLabel" name="label_cart_mfcCO_status">
+         <property name="maximumSize">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
+         </property>
+         <property name="autoFillBackground">
+          <bool>true</bool>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="3">
+        <widget class="QLabel" name="label_cart_mfcH2_status">
+         <property name="maximumSize">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
+         </property>
+         <property name="autoFillBackground">
+          <bool>true</bool>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
    </widget>
-   <widget class="QDoubleSpinBox" name="spinBox_CO">
+   <widget class="QWidget" name="verticalLayoutWidget_7">
     <property name="geometry">
      <rect>
-      <x>510</x>
-      <y>820</y>
-      <width>71</width>
-      <height>31</height>
+      <x>480</x>
+      <y>900</y>
+      <width>131</width>
+      <height>51</height>
      </rect>
     </property>
-    <property name="decimals">
-     <number>1</number>
-    </property>
-   </widget>
-   <widget class="QDoubleSpinBox" name="spinBox_H2">
-    <property name="geometry">
-     <rect>
-      <x>510</x>
-      <y>860</y>
-      <width>71</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="decimals">
-     <number>1</number>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_3">
-    <property name="geometry">
-     <rect>
-      <x>430</x>
-      <y>780</y>
-      <width>71</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Methane</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label">
-    <property name="geometry">
-     <rect>
-      <x>430</x>
-      <y>860</y>
-      <width>71</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Hydrogen</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_H2">
-    <property name="geometry">
-     <rect>
-      <x>600</x>
-      <y>860</y>
-      <width>59</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>H2</string>
-    </property>
+    <layout class="QVBoxLayout" name="verticalLayout_6">
+     <item>
+      <widget class="QRadioButton" name="radioButton_current_control">
+       <property name="text">
+        <string>Current control</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QRadioButton" name="radioButton_voltage_control">
+       <property name="text">
+        <string>Voltage control</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </widget>
    <zorder>verticalLayoutWidget</zorder>
    <zorder>horizontalLayoutWidget</zorder>
@@ -1966,31 +1985,19 @@ monoxide</string>
    <zorder>verticalLayoutWidget_2</zorder>
    <zorder>verticalLayoutWidget_5</zorder>
    <zorder>checkBox_update</zorder>
-   <zorder>horizontalLayoutWidget_2</zorder>
    <zorder>tableWidget_program</zorder>
    <zorder>push_start_program</zorder>
    <zorder>push_pause_program</zorder>
    <zorder>push_stop_program</zorder>
    <zorder>push_visualize_program</zorder>
    <zorder>groupBox</zorder>
-   <zorder>label_H2</zorder>
    <zorder>label_51</zorder>
    <zorder>spinBox_CH4_3</zorder>
    <zorder>spinBox_CO_3</zorder>
-   <zorder>label_CO</zorder>
    <zorder>spinBox_H2_3</zorder>
    <zorder>label_50</zorder>
    <zorder>label_52</zorder>
-   <zorder>label_CH4</zorder>
-   <zorder>label_CH4</zorder>
-   <zorder>spinBox_CH4</zorder>
-   <zorder>label_CO</zorder>
-   <zorder>label_2</zorder>
-   <zorder>spinBox_CO</zorder>
-   <zorder>spinBox_H2</zorder>
-   <zorder>label_3</zorder>
-   <zorder>label</zorder>
-   <zorder>label_H2</zorder>
+   <zorder>verticalLayoutWidget_7</zorder>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="action_open_project">
