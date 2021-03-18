@@ -43,6 +43,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                  temps = [],
                  temps_sp = [],
                  heater_enable1 = [],
+                 ghs = [],
                  RE = [],
                  archiver = [],
                  *args, **kwargs):
@@ -57,13 +58,15 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.temps = temps
         self.temps_sp = temps_sp
         self.heater_enable1 = heater_enable1
+        self.ghs = ghs
 
         self.RE = RE
         self.archiver = archiver
         self.timer_update_time = QtCore.QTimer(self)
         self.timer_update_time.setInterval(2000)
         self.timer_update_time.timeout.connect(self.update_status)
-        #self.timer_update_time.start()
+        self.timer_update_time.singleShot(0, self.update_status)
+        self.timer_update_time.start()
 
         self.program_update_time = 1 # time interval at which program set point is updated
         self.timer_program = QtCore.QTimer(self)
@@ -89,12 +92,64 @@ class XsampleGui(*uic.loadUiType(ui_path)):
             getattr(self, f'spinBox_rga_mass{indx + 1}').setValue(rga_mass.get())
             getattr(self, f'spinBox_rga_mass{indx + 1}').valueChanged.connect(self.change_rga_mass)
 
+
+
+        for indx_ch in range(2):
+            ch = f'{indx_ch + 1}'
+
+            # setting outlets
+            for outlet in ['reactor', 'exhaust']:
+                rb_outlet = getattr(self, f'radioButton_ch{indx_ch + 1}_{outlet}')
+                if self.ghs['channels'][f'{indx_ch + 1}'][outlet].get():
+                    rb_outlet.setChecked(True)
+                else:
+                    rb_outlet.setChecked(False)
+
+
+            getattr(self,f'radioButton_ch{indx_ch+1}_reactor').toggled.connect(self.toggle_exhaust_reactor)
+            getattr(self, f'radioButton_ch{indx_ch+1}_exhaust').toggled.connect(self.toggle_exhaust_reactor)
+
+            # set signal handling of gas selector widgets
+            for indx_mnf in range(5):
+                print(self.ghs['manifolds'][indx_mnf]['gas_selector'].get)
+                getattr(self,f'comboBox_ch{indx_ch+1}_mnf{indx_mnf+1}_gas').currentIndexChanged.connect(self.select_gases)
+            # set signal handling of gas channle enable widgets
+            rb_outlet.setChecked(True)
+
+
+            for indx_mnf in range(8): # going over manifold gas enable checkboxes
+                mnf = f'{indx_mnf + 1}'
+                enable_checkBox = getattr(self, f'checkBox_ch{ch}_mnf{mnf}_enable')
+                #print(f' here is the checkbox {enable_checkBox.objectName()}')
+                #checking if the upstream and downstream valves are open and setting checkbox state
+                upstream_vlv_st = self.ghs['channels'][ch][f'mnf{mnf}_vlv_upstream'].get()
+                dnstream_vlv_st = self.ghs['channels'][ch][f'mnf{mnf}_vlv_dnstream'].get()
+                if upstream_vlv_st and dnstream_vlv_st:
+                    enable_checkBox.setChecked(True)
+                else:
+                    enable_checkBox.setChecked(False)
+                enable_checkBox.stateChanged.connect(self.toggle_channels)
+
+                #setting MFC widgets to the PV setpoint values
+                value = self.ghs['channels'][ch][f'mfc{indx_mnf + 1}_sp'].get()
+                mfc_sp_object = getattr(self, f'spinBox_ch{ch}_mnf{indx_mnf + 1}_mfc_sp')
+                mfc_sp_object.setValue(value)
+                mfc_sp_object.valueChanged.connect(self.set_flow_rates)
+
+
+
+
+
+
+
+
         self.tableWidget_program.setColumnCount(2)
         self.tableWidget_program.setRowCount(10)
         self.tableWidget_program.setHorizontalHeaderLabels(('Temperature\n setpoint', 'Time'))
 
         self.program_sps = None
         self.plot_program = False
+
 
 
 
@@ -184,35 +239,81 @@ class XsampleGui(*uic.loadUiType(ui_path)):
             self.figure_rga.ax.legend(loc=6)
             self.canvas_rga.draw_idle()
 
-            update_figure([self.figure_temp.ax], self.toolbar_temp, self.canvas_temp)
-            if self.radioButton_current_control.isChecked():
-                dataset1 = df[self.temps[0].name]
-                dataset2 = df[self.temps_sp[0].name]
-            else:
-                dataset1 = df[self.temps[1].name]
-                dataset2 = df[self.temps_sp[1].name]
+            # update_figure([self.figure_temp.ax], self.toolbar_temp, self.canvas_temp)
+            # if self.radioButton_current_control.isChecked():
+            #     dataset1 = df[self.temps[0].name]
+            #     dataset2 = df[self.temps_sp[0].name]
+            # else:
+            #     dataset1 = df[self.temps[1].name]
+            #     dataset2 = df[self.temps_sp[1].name]
+            #
+            # XLIM = [dataset1['time'].iloc[0] + timedelta(hours=-4),
+            #         dataset1['time'].iloc[-1] + timedelta(hours=-4)]
+            #
+            # self.figure_temp.ax.plot(dataset1['time'] + timedelta(hours=-4), dataset1['data'], label='T readback')
+            # self.figure_temp.ax.plot(dataset2['time'] + timedelta(hours=-4), dataset2['data'], label='T setpoint')
+            # if self.plot_program:
+            #     if self.program_plot_moving_flag:
+            #         self.update_plot_program_data()
+            #     self.figure_temp.ax.plot(self.program_dataset['time'],
+            #                              self.program_dataset['data'], 'k:', label='T program')
+            #     XLIM[1] = np.max([self.program_dataset['time'].iloc[-1], dataset1['time'].iloc[-1] + timedelta(hours=-4)])
+            #
+            #
+            # self.figure_temp.ax.xaxis.set_major_formatter(data_format)
+            # self.figure_temp.ax.set_xlim(XLIM)
+            # self.figure_temp.ax.relim(visible_only=True)
+            # self.figure_temp.ax.grid(alpha=0.4)
+            # self.figure_temp.ax.autoscale_view(tight=True)
+            # self.figure_temp.tight_layout()
+            # self.figure_temp.ax.legend(loc=5)
+            # self.canvas_temp.draw_idle()
 
-            XLIM = [dataset1['time'].iloc[0] + timedelta(hours=-4),
-                    dataset1['time'].iloc[-1] + timedelta(hours=-4)]
+            # Check rector/exhaust status
+            for indx_ch in range(2):
+                for outlet in  ['reactor', 'exhaust']:
+                    status_label = getattr(self, f'label_ch{indx_ch + 1}_{outlet}_status')
 
-            self.figure_temp.ax.plot(dataset1['time'] + timedelta(hours=-4), dataset1['data'], label='T readback')
-            self.figure_temp.ax.plot(dataset2['time'] + timedelta(hours=-4), dataset2['data'], label='T setpoint')
-            if self.plot_program:
-                if self.program_plot_moving_flag:
-                    self.update_plot_program_data()
-                self.figure_temp.ax.plot(self.program_dataset['time'],
-                                         self.program_dataset['data'], 'k:', label='T program')
-                XLIM[1] = np.max([self.program_dataset['time'].iloc[-1], dataset1['time'].iloc[-1] + timedelta(hours=-4)])
+                    if self.ghs['channels'][f'{indx_ch + 1}'][outlet].get():
+                        status_label.setStyleSheet('background-color: rgb(0,255,0)')
+                    else:
+                        status_label.setStyleSheet('background-color: rgb(255,0,0)')
 
 
-            self.figure_temp.ax.xaxis.set_major_formatter(data_format)
-            self.figure_temp.ax.set_xlim(XLIM)
-            self.figure_temp.ax.relim(visible_only=True)
-            self.figure_temp.ax.grid(alpha=0.4)
-            self.figure_temp.ax.autoscale_view(tight=True)
-            self.figure_temp.tight_layout()
-            self.figure_temp.ax.legend(loc=5)
-            self.canvas_temp.draw_idle()
+
+                for indx_mnf in range(8):
+                    mfc_sp_object = getattr(self, f'spinBox_ch{indx_ch + 1}_mnf{indx_mnf + 1}_mfc_sp')
+                    value = "{:.2f} sccm".format(self.ghs['channels'][f'{indx_ch+1}'][f'mfc{indx_mnf+1}_rb'].get())
+                    getattr(self, f'label_ch{indx_ch+1}_mnf{indx_mnf+1}_mfc_rb').setText(value)
+
+                    mfc_sp_object = getattr(self, f'spinBox_ch{indx_ch + 1}_mnf{indx_mnf + 1}_mfc_sp')
+                    st = mfc_sp_object.blockSignals(True)
+                    value = self.ghs['channels'][f'{indx_ch + 1}'][f'mfc{indx_mnf + 1}_sp'].get()
+                    mfc_sp_object.setValue(value)
+                    mfc_sp_object.blockSignals(st)
+
+                    sp =  self.ghs['channels'][f'{indx_ch + 1}'][f'mfc{indx_mnf + 1}_sp'].get()
+                    rb =  self.ghs['channels'][f'{indx_ch+1}'][f'mfc{indx_mnf+1}_rb'].get()
+                    status_label = getattr(self, f'label_ch{indx_ch+1}_mnf{indx_mnf+1}_mfc_status')
+
+                    #Check if the setpoints and readbacks are close
+                    if sp > 0:
+                        error = np.abs((rb - sp)/sp)
+                        if error > 0.1:
+                            status_label.setStyleSheet('background-color: rgb(255,0,0)')
+                        elif error > 0.02:
+                            status_label.setStyleSheet('background-color: rgb(255,240,24)')
+                        else:
+                            status_label.setStyleSheet('background-color: rgb(0,255,0)')
+                    else:
+                        status_label.setStyleSheet('background-color: rgb(171,171,171)')
+
+
+
+
+
+
+
 
 
 
@@ -307,21 +408,58 @@ class XsampleGui(*uic.loadUiType(ui_path)):
             self.timer_program.stop()
         print('time passed:', current_time - self.init_time, 'index:', self.program_idx, 'setpoint:', this_sp)
 
-        self.temps_sp[0].put(this_sp)
+        # self.temps_sp[0].put(this_sp)
         self.program_idx += 1
 
+    def toggle_exhaust_reactor(self):
+        sender = QObject()
+        sender_object = sender.sender()
+        sender_name = sender_object.objectName()
+        ch_num = sender_name[14]
+        if sender_name.endswith('exhaust') and sender_object.isChecked():
+            self.ghs['channels'][ch_num]['exhaust'].set(1)
+            ttime.sleep(2)
+            self.ghs['channels'][ch_num]['reactor'].set(0)
+        if sender_name.endswith('reactor') and sender_object.isChecked():
+            self.ghs['channels'][ch_num]['reactor'].set(1)
+            ttime.sleep(2)
+            self.ghs['channels'][ch_num]['exhaust'].set(0)
 
 
+    def select_gases(self):
+        sender = QObject()
+        sender_object = sender.sender()
+        sender_name = sender_object.objectName()
+        gas = sender_object.currentText()
+        #print(sender_name)
+        indx_ch, indx_mnf = re.findall(r'\d+', sender_name)
+        gas_command = self.ghs['manifolds'][indx_mnf]['gases'][gas]
+        #print(f'Gas command {gas_command}')
+        self.ghs['manifolds'][indx_mnf]['gas_selector'].set(gas_command)
 
 
+    def toggle_channels(self):
+        sender = QObject()
+        sender_object = sender.sender()
+        sender_name = sender_object.objectName()
+
+        indx_ch, indx_mnf = re.findall(r'\d+', sender_name)
+        if sender_object.isChecked():
+            self.ghs['channels'][indx_ch][f'mnf{indx_mnf}_vlv_upstream'].set(1)
+            self.ghs['channels'][indx_ch][f'mnf{indx_mnf}_vlv_dnstream'].set(1)
+        else:
+            self.ghs['channels'][indx_ch][f'mnf{indx_mnf}_vlv_upstream'].set(0)
+            self.ghs['channels'][indx_ch][f'mnf{indx_mnf}_vlv_dnstream'].set(0)
 
 
-
-
-
-
-
-
+    def set_flow_rates(self):
+        sender = QObject()
+        sender_object = sender.sender()
+        sender_name = sender_object.objectName()
+        #print(sender_name)
+        indx_ch, indx_mnf = re.findall(r'\d+', sender_name)
+        value = sender_object.value()
+        self.ghs['channels'][indx_ch][f'mfc{indx_mnf}_sp'].set(value)
 
 
 if __name__ == '__main__':
