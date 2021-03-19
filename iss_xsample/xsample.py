@@ -60,6 +60,12 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.heater_enable1 = heater_enable1
         self.ghs = ghs
 
+        self.gas_mapper ={'1': {0:0,4:1,3:2,1:3},
+                          '2': {0:0, 2:1, 3:2},
+                          '3': {0:0, 1:1, 2:2},
+                          '4': {0:0, 1:2, 2:1},
+                          '5': {0:0, 1:1, 2:2},
+                          }
         self.RE = RE
         self.archiver = archiver
         self.timer_update_time = QtCore.QTimer(self)
@@ -76,22 +82,19 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.push_visualize_program.clicked.connect(self.visualize_program)
         self.push_start_program.clicked.connect(self.start_program)
 
-        self.spinBox_CH4.valueChanged.connect(self.set_mfc_cart_flow)
-        self.spinBox_CO.valueChanged.connect(self.set_mfc_cart_flow)
-        self.spinBox_H2.valueChanged.connect(self.set_mfc_cart_flow)
-
-        self.spinBox_CH4.setValue(mfcs[0].flow.get_setpoint())
-        self.spinBox_CO.setValue(mfcs[1].flow.get_setpoint())
-        self.spinBox_H2.setValue(mfcs[2].flow.get_setpoint())
-
         for indx in range(8):
             getattr(self, f'checkBox_rga{indx+1}').toggled.connect(self.update_status)
-
 
         for indx, rga_mass in enumerate(self.rga_masses):
             getattr(self, f'spinBox_rga_mass{indx + 1}').setValue(rga_mass.get())
             getattr(self, f'spinBox_rga_mass{indx + 1}').valueChanged.connect(self.change_rga_mass)
 
+        #initializing mobile cart MFC readings
+
+        for indx_mfc in range(3):
+            mfc_widget = getattr(self, f'spinBox_cart_mfc{indx_mfc+1}_sp')
+            mfc_widget.setValue(self.mfcs[indx_mfc].sp.get())
+            mfc_widget.editingFinished.connect(self.set_mfc_cart_flow)
 
 
         for indx_ch in range(2):
@@ -111,8 +114,10 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
             # set signal handling of gas selector widgets
             for indx_mnf in range(5):
-                print(self.ghs['manifolds'][indx_mnf]['gas_selector'].get)
-                getattr(self,f'comboBox_ch{indx_ch+1}_mnf{indx_mnf+1}_gas').currentIndexChanged.connect(self.select_gases)
+                gas_selector_widget = getattr(self,f'comboBox_ch{indx_ch+1}_mnf{indx_mnf+1}_gas')
+                gas = self.ghs['manifolds'][f'{indx_mnf+1}']['gas_selector'].get()
+                gas_selector_widget.setCurrentIndex(self.gas_mapper[f'{indx_mnf+1}'][gas])
+                gas_selector_widget.currentIndexChanged.connect(self.select_gases)
             # set signal handling of gas channle enable widgets
             rb_outlet.setChecked(True)
 
@@ -134,12 +139,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                 value = self.ghs['channels'][ch][f'mfc{indx_mnf + 1}_sp'].get()
                 mfc_sp_object = getattr(self, f'spinBox_ch{ch}_mnf{indx_mnf + 1}_mfc_sp')
                 mfc_sp_object.setValue(value)
-                mfc_sp_object.valueChanged.connect(self.set_flow_rates)
-
-
-
-
-
+                mfc_sp_object.editingFinished.connect(self.set_flow_rates)
 
 
 
@@ -166,7 +166,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
     def addCanvas(self):
         self.figure_rga = Figure()
-        self.figure_rga.set_facecolor(color='#FcF9F6')
+        self.figure_rga.set_facecolor(color='#efebe7')
         self.figure_rga.ax = self.figure_rga.add_subplot(111)
         self.canvas_rga = FigureCanvas(self.figure_rga)
         self.toolbar_rga = NavigationToolbar(self.canvas_rga, self)
@@ -175,7 +175,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.canvas_rga.draw()
 
         self.figure_mfc = Figure()
-        self.figure_mfc.set_facecolor(color='#FcF9F6')
+        self.figure_mfc.set_facecolor(color='#efebe7')
         self.figure_mfc.ax = self.figure_mfc.add_subplot(111)
         self.canvas_mfc = FigureCanvas(self.figure_mfc)
         self.toolbar_mfc = NavigationToolbar(self.canvas_mfc, self)
@@ -184,7 +184,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.canvas_mfc.draw()
 
         self.figure_temp = Figure()
-        self.figure_temp.set_facecolor(color='#FcF9F6')
+        self.figure_temp.set_facecolor(color='#efebe7')
         self.figure_temp.ax = self.figure_temp.add_subplot(111)
         self.canvas_temp = FigureCanvas(self.figure_temp)
         self.toolbar_temp = NavigationToolbar(self.canvas_temp, self)
@@ -201,12 +201,32 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
     def update_status(self):
         if self.checkBox_update.isChecked():
-            flow_CH4 = self.mfcs[0].flow.read()['mfc_cart_CH4_flow']['value']
-            self.label_CH4.setText('{:.1f} sccm'.format(flow_CH4))
-            flow_CO = self.mfcs[1].flow.read()['mfc_cart_CO_flow']['value']
-            self.label_CO.setText('{:.1f} sccm'.format(flow_CO))
-            flow_H2 = self.mfcs[2].flow.read()['mfc_cart_H2_flow']['value']
-            self.label_H2.setText('{:.1f} sccm'.format(flow_H2))
+            # update card MFC setpoints and readbacks
+            for indx_mfc in range(3):
+                mfc_rb_widget = getattr(self, f'spinBox_cart_mfc{indx_mfc + 1}_rb')
+                rb = '{:.1f} sccm'.format(self.mfcs[indx_mfc].rb.get())
+                mfc_rb_widget.setText(rb)
+                mfc_sp_widget = getattr(self, f'spinBox_cart_mfc{indx_mfc + 1}_sp')
+                st = mfc_sp_widget.blockSignals(True)
+                sp = self.mfcs[indx_mfc].sp.get()
+                if not mfc_sp_widget.hasFocus():
+                    mfc_sp_widget.setValue(sp)
+                mfc_sp_widget.blockSignals(st)
+
+                # Check if the setpoints and readbacks are close
+                status_label = getattr(self, f'label_cart_mfc{indx_mfc+1}_status')
+                rb = float(re.findall('\d*\.?\d+',rb)[0])
+                if sp > 0:
+                    error = np.abs((rb - sp) / sp)
+                    if error > 0.1:
+                        status_label.setStyleSheet('background-color: rgb(255,0,0)')
+                    elif error > 0.02:
+                        status_label.setStyleSheet('background-color: rgb(255,240,24)')
+                    else:
+                        status_label.setStyleSheet('background-color: rgb(0,255,0)')
+                else:
+                    status_label.setStyleSheet('background-color: rgb(171,171,171)')
+
 
             now = ttime.time()
             timewindow = self.doubleSpinBox_timewindow.value()
@@ -229,7 +249,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                 indx = rga_ch.name[-1]
                 if getattr(self, f'checkBox_rga{indx}').isChecked():
                     # put -5 in the winter, -4 in the summer
-                    self.figure_rga.ax.plot(dataset['time']+timedelta(hours=-5),dataset['data'], label = f'{mass} amu')
+                    self.figure_rga.ax.plot(dataset['time']+timedelta(hours=-4),dataset['data'], label = f'{mass} amu')
             self.figure_rga.ax.grid(alpha=0.4)
             self.figure_rga.ax.xaxis.set_major_formatter(data_format)
             self.figure_rga.ax.set_xlim(ttime.ctime(some_time_ago), ttime.ctime(now))
@@ -262,7 +282,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
             #
             # self.figure_temp.ax.xaxis.set_major_formatter(data_format)
             # self.figure_temp.ax.set_xlim(XLIM)
-            # self.figure_temp.ax.relim(visible_only=True)
+            # self.figure_temp.ax.relim(visible_only=
             # self.figure_temp.ax.grid(alpha=0.4)
             # self.figure_temp.ax.autoscale_view(tight=True)
             # self.figure_temp.tight_layout()
@@ -282,15 +302,16 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
 
                 for indx_mnf in range(8):
-                    mfc_sp_object = getattr(self, f'spinBox_ch{indx_ch + 1}_mnf{indx_mnf + 1}_mfc_sp')
+                    mfc_sp_widget = getattr(self, f'spinBox_ch{indx_ch + 1}_mnf{indx_mnf + 1}_mfc_sp')
                     value = "{:.2f} sccm".format(self.ghs['channels'][f'{indx_ch+1}'][f'mfc{indx_mnf+1}_rb'].get())
                     getattr(self, f'label_ch{indx_ch+1}_mnf{indx_mnf+1}_mfc_rb').setText(value)
 
-                    mfc_sp_object = getattr(self, f'spinBox_ch{indx_ch + 1}_mnf{indx_mnf + 1}_mfc_sp')
-                    st = mfc_sp_object.blockSignals(True)
+                    mfc_sp_widget = getattr(self, f'spinBox_ch{indx_ch + 1}_mnf{indx_mnf + 1}_mfc_sp')
+                    st = mfc_sp_widget.blockSignals(True)
                     value = self.ghs['channels'][f'{indx_ch + 1}'][f'mfc{indx_mnf + 1}_sp'].get()
-                    mfc_sp_object.setValue(value)
-                    mfc_sp_object.blockSignals(st)
+                    if not mfc_sp_widget.hasFocus():
+                        mfc_sp_widget.setValue(value)
+                    mfc_sp_widget.blockSignals(st)
 
                     sp =  self.ghs['channels'][f'{indx_ch + 1}'][f'mfc{indx_mnf + 1}_sp'].get()
                     rb =  self.ghs['channels'][f'{indx_ch+1}'][f'mfc{indx_mnf+1}_rb'].get()
@@ -308,35 +329,19 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                     else:
                         status_label.setStyleSheet('background-color: rgb(171,171,171)')
 
-
-
-
-
-
-
-
-
-
     def set_mfc_cart_flow(self):
         sender = QObject()
         sender_object = sender.sender()
         sender_name = sender_object.objectName()
         value = sender_object.value()
-        mfc_dict = {'spinBox_CH4': self.mfcs[0],
-                    'spinBox_CO': self.mfcs[1],
-                    'spinBox_H2': self.mfcs[2],
-                    }
-
-        mfc_dict[sender_name].flow.put(value)
-
+        indx_mfc = int(re.findall(r'\d+', sender_name)[0])
+        self.mfcs[indx_mfc - 1].sp.set(value)
 
     def visualize_program(self):
         if self.program_sps is None:
             self.read_program_data()
         self.program_plot_moving_flag = True
         self.update_status()
-
-
 
     def read_program_data(self):
         print('Starting the Temperature program')
@@ -369,9 +374,6 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.plot_program = True
         self.update_plot_program_data()
 
-
-
-
     def start_program(self):
         if self.program_sps is None:
             self.read_program_data()
@@ -381,7 +383,6 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.init_time = ttime.time()
         self.RE(bps.mv(self.heater_enable1, 1))
         self.timer_program.start()
-
 
         # for this_time, this_temp in zip(times, temps):
         #     self.init_time = ttime.time()
@@ -396,8 +397,6 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                      (ttime.time() + self.program_time)]
         self.program_dataset = pd.DataFrame({'time': pd.to_datetime(datetimes, format='%Y-%m-%d %H:%M:%S'),
                                              'data': self.program_sps})
-
-
 
     def update_temp_sp(self):
         current_time = ttime.time()
@@ -425,7 +424,6 @@ class XsampleGui(*uic.loadUiType(ui_path)):
             ttime.sleep(2)
             self.ghs['channels'][ch_num]['exhaust'].set(0)
 
-
     def select_gases(self):
         sender = QObject()
         sender_object = sender.sender()
@@ -434,9 +432,16 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         #print(sender_name)
         indx_ch, indx_mnf = re.findall(r'\d+', sender_name)
         gas_command = self.ghs['manifolds'][indx_mnf]['gases'][gas]
-        #print(f'Gas command {gas_command}')
+        # print(f'Gas command {gas_command}')
         self.ghs['manifolds'][indx_mnf]['gas_selector'].set(gas_command)
 
+        #change the gas selection for the other widget - they both come from the same source
+        sub_dict = {'1':'2','2':'1'}
+        other_selector = getattr(self, f'comboBox_ch{sub_dict[indx_ch]}_mnf{indx_mnf}_gas')
+        #print(other_selector.objectName())
+        st = other_selector.blockSignals(True)
+        other_selector.setCurrentIndex(sender_object.currentIndex())
+        other_selector.blockSignals(st)
 
     def toggle_channels(self):
         sender = QObject()
@@ -451,12 +456,11 @@ class XsampleGui(*uic.loadUiType(ui_path)):
             self.ghs['channels'][indx_ch][f'mnf{indx_mnf}_vlv_upstream'].set(0)
             self.ghs['channels'][indx_ch][f'mnf{indx_mnf}_vlv_dnstream'].set(0)
 
-
     def set_flow_rates(self):
         sender = QObject()
         sender_object = sender.sender()
         sender_name = sender_object.objectName()
-        #print(sender_name)
+        # print(sender_name)
         indx_ch, indx_mnf = re.findall(r'\d+', sender_name)
         value = sender_object.value()
         self.ghs['channels'][indx_ch][f'mfc{indx_mnf}_sp'].set(value)
@@ -468,6 +472,3 @@ if __name__ == '__main__':
     main.show()
 
     sys.exit(app.exec_())
-
-
-

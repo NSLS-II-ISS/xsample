@@ -295,7 +295,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>890</y>
+      <y>900</y>
       <width>441</width>
       <height>231</height>
      </rect>
@@ -346,8 +346,8 @@
    <widget class="QPushButton" name="push_visualize_program">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>1130</y>
+      <x>480</x>
+      <y>1170</y>
       <width>141</width>
       <height>31</height>
      </rect>
@@ -362,7 +362,7 @@
       <x>10</x>
       <y>10</y>
       <width>671</width>
-      <height>861</height>
+      <height>881</height>
      </rect>
     </property>
     <property name="title">
@@ -619,12 +619,12 @@
            </item>
            <item>
             <property name="text">
-             <string>Arsine</string>
+             <string>Phosphine</string>
             </property>
            </item>
            <item>
             <property name="text">
-             <string>Phosphine</string>
+             <string>Arsine</string>
             </property>
            </item>
           </widget>
@@ -1816,7 +1816,7 @@
        <x>10</x>
        <y>730</y>
        <width>651</width>
-       <height>121</height>
+       <height>141</height>
       </rect>
      </property>
      <property name="title">
@@ -1828,7 +1828,7 @@
         <x>10</x>
         <y>20</y>
         <width>321</width>
-        <height>91</height>
+        <height>111</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_8">
@@ -1848,7 +1848,7 @@ monoxide</string>
         </widget>
        </item>
        <item row="0" column="2">
-        <widget class="QLabel" name="label_CH4">
+        <widget class="QLabel" name="spinBox_cart_mfc1_rb">
          <property name="text">
           <string>CH4</string>
          </property>
@@ -1862,42 +1862,42 @@ monoxide</string>
         </widget>
        </item>
        <item row="2" column="1">
-        <widget class="QDoubleSpinBox" name="spinBox_H2">
+        <widget class="QDoubleSpinBox" name="spinBox_cart_mfc3_sp">
          <property name="decimals">
           <number>1</number>
          </property>
         </widget>
        </item>
        <item row="2" column="2">
-        <widget class="QLabel" name="label_H2">
+        <widget class="QLabel" name="spinBox_cart_mfc3_rb">
          <property name="text">
           <string>H2</string>
          </property>
         </widget>
        </item>
        <item row="0" column="1">
-        <widget class="QDoubleSpinBox" name="spinBox_CH4">
+        <widget class="QDoubleSpinBox" name="spinBox_cart_mfc1_sp">
          <property name="decimals">
           <number>1</number>
          </property>
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QDoubleSpinBox" name="spinBox_CO">
+        <widget class="QDoubleSpinBox" name="spinBox_cart_mfc2_sp">
          <property name="decimals">
           <number>1</number>
          </property>
         </widget>
        </item>
        <item row="1" column="2">
-        <widget class="QLabel" name="label_CO">
+        <widget class="QLabel" name="spinBox_cart_mfc2_rb">
          <property name="text">
           <string>CO</string>
          </property>
         </widget>
        </item>
        <item row="0" column="3">
-        <widget class="QLabel" name="label_cart_mfcCH4_status">
+        <widget class="QLabel" name="label_cart_mfc1_status">
          <property name="maximumSize">
           <size>
            <width>20</width>
@@ -1913,7 +1913,7 @@ monoxide</string>
         </widget>
        </item>
        <item row="1" column="3">
-        <widget class="QLabel" name="label_cart_mfcCO_status">
+        <widget class="QLabel" name="label_cart_mfc2_status">
          <property name="maximumSize">
           <size>
            <width>20</width>
@@ -1929,7 +1929,7 @@ monoxide</string>
         </widget>
        </item>
        <item row="2" column="3">
-        <widget class="QLabel" name="label_cart_mfcH2_status">
+        <widget class="QLabel" name="label_cart_mfc3_status">
          <property name="maximumSize">
           <size>
            <width>20</width>
