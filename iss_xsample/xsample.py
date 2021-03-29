@@ -46,6 +46,9 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                  ghs = [],
                  RE = [],
                  archiver = [],
+                 pid_enable = [],
+                 pid_value =  [],
+                 heater_sp = [],
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
@@ -59,6 +62,12 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.temps_sp = temps_sp
         self.heater_enable1 = heater_enable1
         self.ghs = ghs
+        self.pid_enable = pid_enable
+        self.pid_value = pid_value
+        self.heater_sp = heater_sp
+
+        self.ramp = ramp_thread(self)
+
 
         self.gas_mapper ={'1': {0:0,4:1,3:2,1:3},
                           '2': {0:0, 2:1, 3:2},
@@ -258,6 +267,22 @@ class XsampleGui(*uic.loadUiType(ui_path)):
             self.figure_rga.tight_layout()
             self.figure_rga.ax.legend(loc=6)
             self.canvas_rga.draw_idle()
+
+            update_figure([self.figure_temp.ax], self.toolbar_temp, self.canvas_temp)
+
+            dataset_rb = df['heater2_temp_rb']
+            dataset_sp = df['heater2_temp_sp']
+            self.figure_temp.ax.plot(dataset_sp['time'] + timedelta(hours=-4), dataset_sp['data'], label='T Setpoint')
+            self.figure_temp.ax.plot(dataset_rb['time']+timedelta(hours=-4),dataset_rb['data'], label = 'T Readback')
+
+            self.figure_temp.ax.grid(alpha=0.4)
+            self.figure_temp.ax.xaxis.set_major_formatter(data_format)
+            self.figure_temp.ax.set_xlim(ttime.ctime(some_time_ago), ttime.ctime(now))
+            self.figure_temp.ax.autoscale_view(tight=True)
+            self.figure_temp.tight_layout()
+            self.figure_temp.ax.legend(loc=6)
+            self.canvas_temp.draw_idle()
+
 
             # update_figure([self.figure_temp.ax], self.toolbar_temp, self.canvas_temp)
             # if self.radioButton_current_control.isChecked():
@@ -465,6 +490,28 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         value = sender_object.value()
         self.ghs['channels'][indx_ch][f'mfc{indx_mnf}_sp'].set(value)
 
+
+
+class ramp_thread(QThread):
+    def __init__(self, parent):
+        QThread.__init__(self)
+        self.parent = parent
+        self.initial_temp = 24
+        self.go = 0
+
+    def run(self):
+        interval = 0.1
+        self.initial_temp = 24
+        self.go = 1
+        temp = self.initial_temp
+        self.parent.pid_enable.put(1)
+        while (self.go):
+            self.parent.pid_value.put(temp)
+            self.parent.heater_sp.put(temp)
+            ttime.sleep(1*interval)
+            if temp < 500:
+                temp +=0.1*interval
+            #print(f'Setpoint temp  {temp} C')
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)

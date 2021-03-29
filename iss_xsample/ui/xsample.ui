@@ -17,9 +17,9 @@
    <widget class="QWidget" name="verticalLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>690</x>
+      <x>740</x>
       <y>10</y>
-      <width>1111</width>
+      <width>1071</width>
       <height>361</height>
      </rect>
     </property>
@@ -256,9 +256,9 @@
    <widget class="QWidget" name="verticalLayoutWidget_2">
     <property name="geometry">
      <rect>
-      <x>690</x>
+      <x>730</x>
       <y>380</y>
-      <width>1111</width>
+      <width>1071</width>
       <height>411</height>
      </rect>
     </property>
@@ -267,9 +267,9 @@
    <widget class="QWidget" name="verticalLayoutWidget_5">
     <property name="geometry">
      <rect>
-      <x>690</x>
+      <x>730</x>
       <y>800</y>
-      <width>1111</width>
+      <width>1071</width>
       <height>411</height>
      </rect>
     </property>
@@ -390,6 +390,57 @@
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout">
+       <item row="1" column="1">
+        <widget class="QCheckBox" name="checkBox_ch1_mnf1_enable">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <layout class="QVBoxLayout" name="verticalLayout">
+         <item>
+          <widget class="QLabel" name="label_9">
+           <property name="text">
+            <string>He/N2/Ar</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="comboBox_ch1_mnf1_gas">
+           <item>
+            <property name="text">
+             <string>Off</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Helium</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Nitrogen</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Argon</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+        </layout>
+       </item>
        <item row="2" column="3">
         <widget class="QLabel" name="label_ch1_mnf2_mfc_rb">
          <property name="text">
@@ -449,41 +500,6 @@
           <string/>
          </property>
         </widget>
-       </item>
-       <item row="1" column="0">
-        <layout class="QVBoxLayout" name="verticalLayout">
-         <item>
-          <widget class="QLabel" name="label_9">
-           <property name="text">
-            <string>He/N2/Ar</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QComboBox" name="comboBox_ch1_mnf1_gas">
-           <item>
-            <property name="text">
-             <string>Off</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Helium</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Nitrogen</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Argon</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-        </layout>
        </item>
        <item row="2" column="2">
         <widget class="QDoubleSpinBox" name="spinBox_ch1_mnf2_mfc_sp">
@@ -790,22 +806,6 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="1">
-        <widget class="QCheckBox" name="checkBox_ch1_mnf1_enable">
-         <property name="enabled">
-          <bool>true</bool>
-         </property>
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
        <item row="1" column="4">
         <widget class="QLabel" name="label_ch1_mnf1_mfc_status">
          <property name="maximumSize">
@@ -973,7 +973,7 @@
        <rect>
         <x>430</x>
         <y>20</y>
-        <width>81</width>
+        <width>85</width>
         <height>51</height>
        </rect>
       </property>
@@ -1803,12 +1803,6 @@
        </item>
       </layout>
      </widget>
-     <zorder>gridLayoutWidget_2</zorder>
-     <zorder>verticalLayoutWidget_13</zorder>
-     <zorder>verticalLayoutWidget_14</zorder>
-     <zorder>groupBox_2</zorder>
-     <zorder>gridLayoutWidget_6</zorder>
-     <zorder>radioButton_14</zorder>
     </widget>
     <widget class="QGroupBox" name="groupBox_4">
      <property name="geometry">
@@ -1977,27 +1971,195 @@ monoxide</string>
      </item>
     </layout>
    </widget>
-   <zorder>verticalLayoutWidget</zorder>
-   <zorder>horizontalLayoutWidget</zorder>
-   <zorder>doubleSpinBox_timewindow</zorder>
-   <zorder>label_5</zorder>
-   <zorder>label_6</zorder>
-   <zorder>verticalLayoutWidget_2</zorder>
-   <zorder>verticalLayoutWidget_5</zorder>
-   <zorder>checkBox_update</zorder>
-   <zorder>tableWidget_program</zorder>
-   <zorder>push_start_program</zorder>
-   <zorder>push_pause_program</zorder>
-   <zorder>push_stop_program</zorder>
-   <zorder>push_visualize_program</zorder>
-   <zorder>groupBox</zorder>
-   <zorder>label_51</zorder>
-   <zorder>spinBox_CH4_3</zorder>
-   <zorder>spinBox_CO_3</zorder>
-   <zorder>spinBox_H2_3</zorder>
-   <zorder>label_50</zorder>
-   <zorder>label_52</zorder>
-   <zorder>verticalLayoutWidget_7</zorder>
+   <widget class="QLabel" name="label_ch1_mnf3_mfc_status_4">
+    <property name="geometry">
+     <rect>
+      <x>1880</x>
+      <y>690</y>
+      <width>20</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>20</width>
+      <height>20</height>
+     </size>
+    </property>
+    <property name="autoFillBackground">
+     <bool>true</bool>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_ch1_mnf6_mfc_status_4">
+    <property name="geometry">
+     <rect>
+      <x>1880</x>
+      <y>823</y>
+      <width>20</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>20</width>
+      <height>20</height>
+     </size>
+    </property>
+    <property name="autoFillBackground">
+     <bool>true</bool>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_ch1_mnf7_mfc_status_4">
+    <property name="geometry">
+     <rect>
+      <x>1880</x>
+      <y>849</y>
+      <width>20</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>20</width>
+      <height>20</height>
+     </size>
+    </property>
+    <property name="autoFillBackground">
+     <bool>true</bool>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_ch1_mnf8_mfc_status_4">
+    <property name="geometry">
+     <rect>
+      <x>1880</x>
+      <y>875</y>
+      <width>20</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>20</width>
+      <height>20</height>
+     </size>
+    </property>
+    <property name="autoFillBackground">
+     <bool>true</bool>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_ch1_mnf1_upstream_status">
+    <property name="geometry">
+     <rect>
+      <x>1880</x>
+      <y>594</y>
+      <width>20</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>20</width>
+      <height>20</height>
+     </size>
+    </property>
+    <property name="autoFillBackground">
+     <bool>true</bool>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_ch1_mnf2_mfc_status_4">
+    <property name="geometry">
+     <rect>
+      <x>1880</x>
+      <y>642</y>
+      <width>20</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>20</width>
+      <height>20</height>
+     </size>
+    </property>
+    <property name="autoFillBackground">
+     <bool>true</bool>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_ch1_mnf4_mfc_status_4">
+    <property name="geometry">
+     <rect>
+      <x>1880</x>
+      <y>738</y>
+      <width>20</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>20</width>
+      <height>20</height>
+     </size>
+    </property>
+    <property name="autoFillBackground">
+     <bool>true</bool>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_ch1_mnf5_mfc_status_4">
+    <property name="geometry">
+     <rect>
+      <x>1880</x>
+      <y>786</y>
+      <width>20</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>20</width>
+      <height>20</height>
+     </size>
+    </property>
+    <property name="autoFillBackground">
+     <bool>true</bool>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="Line" name="line">
+    <property name="geometry">
+     <rect>
+      <x>600</x>
+      <y>1020</y>
+      <width>118</width>
+      <height>3</height>
+     </rect>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+   </widget>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="action_open_project">
