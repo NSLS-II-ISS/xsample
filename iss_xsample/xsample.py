@@ -3,7 +3,7 @@ import re
 import sys
 import time as ttime
 import matplotlib
-matplotlib.use('WXAgg')
+# matplotlib.use('WXAgg')
 import matplotlib.patches as mpatches
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
@@ -69,7 +69,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.ramp = ramp_thread(self)
 
 
-        self.gas_mapper ={'1': {0:0,4:1,3:2,1:3},
+        self.gas_mapper ={'1': {0:0, 4:1, 2:4, 3:2, 1:3},
                           '2': {0:0, 2:1, 3:2},
                           '3': {0:0, 1:1, 2:2},
                           '4': {0:0, 1:2, 2:1},
@@ -158,7 +158,6 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
         self.program_sps = None
         self.plot_program = False
-
 
 
 
@@ -270,14 +269,17 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
             update_figure([self.figure_temp.ax], self.toolbar_temp, self.canvas_temp)
 
-            dataset_rb = df['heater2_temp_rb']
-            dataset_sp = df['heater2_temp_sp']
-            self.figure_temp.ax.plot(dataset_sp['time'] + timedelta(hours=-4), dataset_sp['data'], label='T Setpoint')
-            self.figure_temp.ax.plot(dataset_rb['time']+timedelta(hours=-4),dataset_rb['data'], label = 'T Readback')
+            dataset_rb = df['temp2']
+            dataset_sp = df['temp2_sp']
+
+            self.figure_temp.ax.plot(dataset_sp['time'] + timedelta(hours=-4), dataset_sp['data'], label='T setpoint')
+            self.figure_temp.ax.plot(dataset_rb['time']+timedelta(hours=-4),dataset_rb['data'], label = 'T readback')
 
             self.figure_temp.ax.grid(alpha=0.4)
             self.figure_temp.ax.xaxis.set_major_formatter(data_format)
             self.figure_temp.ax.set_xlim(ttime.ctime(some_time_ago), ttime.ctime(now))
+            self.figure_temp.ax.set_ylim(self.spinBox_temp_range_min.value(),
+                                         self.spinBox_temp_range_max.value())
             self.figure_temp.ax.autoscale_view(tight=True)
             self.figure_temp.tight_layout()
             self.figure_temp.ax.legend(loc=6)
