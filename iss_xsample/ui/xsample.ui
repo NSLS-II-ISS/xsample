@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>2026</width>
+    <width>2236</width>
     <height>1238</height>
    </rect>
   </property>
@@ -304,8 +304,8 @@
    <widget class="QPushButton" name="push_start_program">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>1170</y>
+      <x>10</x>
+      <y>1180</y>
       <width>141</width>
       <height>31</height>
      </rect>
@@ -318,7 +318,7 @@
     <property name="geometry">
      <rect>
       <x>170</x>
-      <y>1170</y>
+      <y>1180</y>
       <width>141</width>
       <height>31</height>
      </rect>
@@ -333,8 +333,8 @@
    <widget class="QPushButton" name="push_stop_program">
     <property name="geometry">
      <rect>
-      <x>320</x>
-      <y>1170</y>
+      <x>330</x>
+      <y>1180</y>
       <width>141</width>
       <height>31</height>
      </rect>
@@ -346,8 +346,8 @@
    <widget class="QPushButton" name="push_visualize_program">
     <property name="geometry">
      <rect>
-      <x>480</x>
-      <y>1170</y>
+      <x>10</x>
+      <y>1140</y>
       <width>141</width>
       <height>31</height>
      </rect>
@@ -1955,35 +1955,6 @@ monoxide</string>
      </widget>
     </widget>
    </widget>
-   <widget class="QWidget" name="verticalLayoutWidget_7">
-    <property name="geometry">
-     <rect>
-      <x>480</x>
-      <y>900</y>
-      <width>132</width>
-      <height>60</height>
-     </rect>
-    </property>
-    <layout class="QVBoxLayout" name="verticalLayout_6">
-     <item>
-      <widget class="QRadioButton" name="radioButton_current_control">
-       <property name="text">
-        <string>Current control</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QRadioButton" name="radioButton_voltage_control">
-       <property name="text">
-        <string>Voltage control</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
    <widget class="QLabel" name="label_ch1_mnf3_mfc_status_4">
     <property name="geometry">
      <rect>
@@ -2160,19 +2131,6 @@ monoxide</string>
      <string/>
     </property>
    </widget>
-   <widget class="Line" name="line">
-    <property name="geometry">
-     <rect>
-      <x>600</x>
-      <y>1020</y>
-      <width>118</width>
-      <height>3</height>
-     </rect>
-    </property>
-    <property name="orientation">
-     <enum>Qt::Horizontal</enum>
-    </property>
-   </widget>
    <widget class="QSpinBox" name="spinBox_temp_range_max">
     <property name="geometry">
      <rect>
@@ -2214,6 +2172,121 @@ monoxide</string>
     <property name="text">
      <string>Temperature range</string>
     </property>
+   </widget>
+   <widget class="QComboBox" name="comboBox_sample_envs">
+    <property name="geometry">
+     <rect>
+      <x>480</x>
+      <y>930</y>
+      <width>211</width>
+      <height>31</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_7">
+    <property name="geometry">
+     <rect>
+      <x>480</x>
+      <y>900</y>
+      <width>211</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Current sample environment:</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="push_clear_program">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>1140</y>
+      <width>141</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Clear program</string>
+    </property>
+   </widget>
+   <widget class="QWidget" name="gridLayoutWidget_3">
+    <property name="geometry">
+     <rect>
+      <x>480</x>
+      <y>1000</y>
+      <width>211</width>
+      <height>126</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="gridLayout_3">
+     <item row="3" column="1">
+      <widget class="QLabel" name="label_output_pid_status">
+       <property name="maximumSize">
+        <size>
+         <width>20</width>
+         <height>20</height>
+        </size>
+       </property>
+       <property name="autoFillBackground">
+        <bool>true</bool>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0" colspan="2">
+      <widget class="QLabel" name="label_pv_sp">
+       <property name="text">
+        <string>Temperature SP:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="label_pv_sp_3">
+       <property name="text">
+        <string>Program Status</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0" colspan="2">
+      <widget class="QLabel" name="label_pv_rb">
+       <property name="text">
+        <string>Temperature RB:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QLabel" name="label_program_status">
+       <property name="maximumSize">
+        <size>
+         <width>20</width>
+         <height>20</height>
+        </size>
+       </property>
+       <property name="autoFillBackground">
+        <bool>true</bool>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_output_pid">
+       <property name="text">
+        <string>Output PID Status</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0" colspan="2">
+      <widget class="QLabel" name="label_output_rb">
+       <property name="text">
+        <string>Output RB:</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </widget>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>

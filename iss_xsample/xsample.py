@@ -40,15 +40,11 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                  mfcs = [],
                  rga_channels = [],
                  rga_masses = [],
-                 temps = [],
-                 temps_sp = [],
                  heater_enable1 = [],
                  ghs = [],
                  RE = [],
                  archiver = [],
-                 pid_enable = [],
-                 pid_value =  [],
-                 heater_sp = [],
+                 sample_envs_dict=[],
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
@@ -58,38 +54,36 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.mfcs = mfcs
         self.rga_channels = rga_channels
         self.rga_masses = rga_masses
-        self.temps = temps
-        self.temps_sp = temps_sp
-        self.heater_enable1 = heater_enable1
         self.ghs = ghs
-        self.pid_enable = pid_enable
-        self.pid_value = pid_value
-        self.heater_sp = heater_sp
 
-        self.ramp = ramp_thread(self)
+        self.sample_envs_dict = sample_envs_dict
 
-
-        self.gas_mapper ={'1': {0:0, 4:1, 2:4, 3:2, 1:3},
-                          '2': {0:0, 2:1, 3:2},
-                          '3': {0:0, 1:1, 2:2},
-                          '4': {0:0, 1:2, 2:1},
-                          '5': {0:0, 1:1, 2:2},
-                          }
         self.RE = RE
         self.archiver = archiver
-        self.timer_update_time = QtCore.QTimer(self)
-        self.timer_update_time.setInterval(2000)
-        self.timer_update_time.timeout.connect(self.update_status)
-        self.timer_update_time.singleShot(0, self.update_status)
-        self.timer_update_time.start()
-
-        self.program_update_time = 1 # time interval at which program set point is updated
-        self.timer_program = QtCore.QTimer(self)
-        self.timer_program.setInterval(self.program_update_time*1000)
-        self.timer_program.timeout.connect(self.update_temp_sp)
 
         self.push_visualize_program.clicked.connect(self.visualize_program)
+        self.push_clear_program.clicked.connect(self.clear_program)
         self.push_start_program.clicked.connect(self.start_program)
+        self.push_pause_program.setChecked(0)
+        self.push_pause_program.toggled.connect(self.pause_program)
+        self.push_stop_program.clicked.connect(self.stop_program)
+
+        self.pid_program = None
+        self.plot_program_flag = False
+        self.program_plot_moving_flag = True
+        self._plot_program_data = None
+
+        sample_envs_list = [k for k in self.sample_envs_dict.keys()]
+        self.comboBox_sample_envs.addItems(sample_envs_list)
+        self.comboBox_sample_envs.currentIndexChanged.connect(self.sample_env_selected)
+        self.sample_env_selected()
+
+        self.gas_mapper = {'1': {0: 0, 4: 1, 2: 4, 3: 2, 1: 3},
+                           '2': {0: 0, 2: 1, 3: 2},
+                           '3': {0: 0, 1: 1, 2: 2},
+                           '4': {0: 0, 1: 2, 2: 1},
+                           '5': {0: 0, 1: 1, 2: 2},
+                           }
 
         for indx in range(8):
             getattr(self, f'checkBox_rga{indx+1}').toggled.connect(self.update_status)
@@ -151,24 +145,12 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                 mfc_sp_object.editingFinished.connect(self.set_flow_rates)
 
 
+        self.timer_update_time = QtCore.QTimer(self)
+        self.timer_update_time.setInterval(2000)
+        self.timer_update_time.timeout.connect(self.update_status)
+        self.timer_update_time.singleShot(0, self.update_status)
+        self.timer_update_time.start()
 
-        self.tableWidget_program.setColumnCount(2)
-        self.tableWidget_program.setRowCount(10)
-        self.tableWidget_program.setHorizontalHeaderLabels(('Temperature\n setpoint', 'Time'))
-
-        self.program_sps = None
-        self.plot_program = False
-
-
-
-    # a.setRowCount(2)
-    # a.setRowCount(12)
-    # a.setVerticalHeaderLabels('sd', 'sdsd')
-    # a.setVerticalHeaderLabels(('sd', 'sdsd'))
-    # a.setHorizontalHeaderLabels(('Temperqature setpoint', 'Time'))
-    # a.setHorizontalHeaderLabels(('Temperqature\n setpoint', 'Time'))
-    # a.setHorizontalHeaderLabels(('Temperature\n setpoint', 'Time'))
-    # a.setHorizontalHeaderLabels(('Temperature\n setpoint', 'Time'))
 
 
 
@@ -201,29 +183,74 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.canvas_temp.draw()
 
 
-    def change_rga_mass(self):
-        sender_object = QObject().sender()
-        indx=sender_object.objectName()[-1]
-        self.RE(bps.mv(self.rga_masses[int(indx)-1],sender_object.value()))
+    def sample_env_selected(self):
+        _current_key = self.comboBox_sample_envs.currentText()
+        self.current_sample_env = self.sample_envs_dict[_current_key]
+        self.init_table_widget()
+
+    def init_table_widget(self):
+        # TODO: make the table length correspond to the max length acceptable by the sample environment
+        self.tableWidget_program.setColumnCount(2)
+        self.tableWidget_program.setRowCount(10)
+        setpoint_name = f'{self.current_sample_env.pv_name}\nsetpoint ({self.current_sample_env.pv_units})'
+        self.tableWidget_program.setHorizontalHeaderLabels(('Time (min)', setpoint_name))
 
 
-    def update_status(self):
-        if self.checkBox_update.isChecked():
-            # update card MFC setpoints and readbacks
-            for indx_mfc in range(3):
-                mfc_rb_widget = getattr(self, f'spinBox_cart_mfc{indx_mfc + 1}_rb')
-                rb = '{:.1f} sccm'.format(self.mfcs[indx_mfc].rb.get())
-                mfc_rb_widget.setText(rb)
-                mfc_sp_widget = getattr(self, f'spinBox_cart_mfc{indx_mfc + 1}_sp')
+
+    def update_ghs_status(self):
+        # update card MFC setpoints and readbacks
+        for indx_mfc in range(3):
+            mfc_rb_widget = getattr(self, f'spinBox_cart_mfc{indx_mfc + 1}_rb')
+            rb = '{:.1f} sccm'.format(self.mfcs[indx_mfc].rb.get())
+            mfc_rb_widget.setText(rb)
+            mfc_sp_widget = getattr(self, f'spinBox_cart_mfc{indx_mfc + 1}_sp')
+            st = mfc_sp_widget.blockSignals(True)
+            sp = self.mfcs[indx_mfc].sp.get()
+            if not mfc_sp_widget.hasFocus():
+                mfc_sp_widget.setValue(sp)
+            mfc_sp_widget.blockSignals(st)
+
+            # Check if the setpoints and readbacks are close
+            status_label = getattr(self, f'label_cart_mfc{indx_mfc + 1}_status')
+            rb = float(re.findall('\d*\.?\d+', rb)[0])
+            if sp > 0:
+                error = np.abs((rb - sp) / sp)
+                if error > 0.1:
+                    status_label.setStyleSheet('background-color: rgb(255,0,0)')
+                elif error > 0.02:
+                    status_label.setStyleSheet('background-color: rgb(255,240,24)')
+                else:
+                    status_label.setStyleSheet('background-color: rgb(0,255,0)')
+            else:
+                status_label.setStyleSheet('background-color: rgb(171,171,171)')
+
+        # Check rector/exhaust status
+        for indx_ch in range(2):
+            for outlet in ['reactor', 'exhaust']:
+                status_label = getattr(self, f'label_ch{indx_ch + 1}_{outlet}_status')
+
+                if self.ghs['channels'][f'{indx_ch + 1}'][outlet].get():
+                    status_label.setStyleSheet('background-color: rgb(0,255,0)')
+                else:
+                    status_label.setStyleSheet('background-color: rgb(255,0,0)')
+
+            for indx_mnf in range(8):
+                mfc_sp_widget = getattr(self, f'spinBox_ch{indx_ch + 1}_mnf{indx_mnf + 1}_mfc_sp')
+                value = "{:.2f} sccm".format(self.ghs['channels'][f'{indx_ch + 1}'][f'mfc{indx_mnf + 1}_rb'].get())
+                getattr(self, f'label_ch{indx_ch + 1}_mnf{indx_mnf + 1}_mfc_rb').setText(value)
+
+                mfc_sp_widget = getattr(self, f'spinBox_ch{indx_ch + 1}_mnf{indx_mnf + 1}_mfc_sp')
                 st = mfc_sp_widget.blockSignals(True)
-                sp = self.mfcs[indx_mfc].sp.get()
+                value = self.ghs['channels'][f'{indx_ch + 1}'][f'mfc{indx_mnf + 1}_sp'].get()
                 if not mfc_sp_widget.hasFocus():
-                    mfc_sp_widget.setValue(sp)
+                    mfc_sp_widget.setValue(value)
                 mfc_sp_widget.blockSignals(st)
 
+                sp = self.ghs['channels'][f'{indx_ch + 1}'][f'mfc{indx_mnf + 1}_sp'].get()
+                rb = self.ghs['channels'][f'{indx_ch + 1}'][f'mfc{indx_mnf + 1}_rb'].get()
+                status_label = getattr(self, f'label_ch{indx_ch + 1}_mnf{indx_mnf + 1}_mfc_status')
+
                 # Check if the setpoints and readbacks are close
-                status_label = getattr(self, f'label_cart_mfc{indx_mfc+1}_status')
-                rb = float(re.findall('\d*\.?\d+',rb)[0])
                 if sp > 0:
                     error = np.abs((rb - sp) / sp)
                     if error > 0.1:
@@ -236,125 +263,190 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                     status_label.setStyleSheet('background-color: rgb(171,171,171)')
 
 
-            now = ttime.time()
-            timewindow = self.doubleSpinBox_timewindow.value()
-            data_format= mdates.DateFormatter('%H:%M:%S')
+    def update_sample_env_status(self):
+        sample_env = self.current_sample_env
+        self.label_pv_rb.setText(f'{sample_env.pv_name} RB: {sample_env.pv.get()}')
+        self.label_pv_sp.setText(f'{sample_env.pv_name} SP: {sample_env.pv_sp.get()}')
+        self.label_output_rb.setText(f'Output {sample_env.pv_output_name} RB: {sample_env.pv_output.get()} {sample_env.pv_output_units}')
+
+        if sample_env.enabled.get() == 1:
+            self.label_output_pid_status.setStyleSheet('background-color: rgb(255,0,0)')
+            self.label_output_pid_status.setText('ON')
+        else:
+            self.label_output_pid_status.setStyleSheet('background-color: rgb(171,171,171)')
+            self.label_output_pid_status.setText('OFF')
+
+        if (sample_env.ramper.go.get() == 1) and (sample_env.ramper.pv_pause.get() == 0):
+            self.label_program_status.setStyleSheet('background-color: rgb(255,0,0)')
+            self.label_program_status.setText('ON')
+        elif (sample_env.ramper.go.get() == 1) and (sample_env.ramper.pv_pause.get() == 1):
+            self.label_program_status.setStyleSheet('background-color: rgb(255,240,24)')
+            self.label_program_status.setText('PAUSED')
+        elif sample_env.ramper.go.get() == 0:
+            self.label_program_status.setStyleSheet('background-color: rgb(171,171,171)')
+            self.label_program_status.setText('OFF')
+
+    def update_plotting_status(self):
+        now = ttime.time()
+        timewindow = self.doubleSpinBox_timewindow.value()
+        data_format = mdates.DateFormatter('%H:%M:%S')
+
+        some_time_ago = now - 3600 * timewindow
+        df = self.archiver.tables_given_times(some_time_ago, now)
+        self._df_ = df
+        self._xlim_num = [some_time_ago, now]
+        # handling the xlim extension due to the program vizualization
+        if self.plot_program_flag:
+            if self._plot_program_data is not None:
+                self._xlim_num[1] = np.max([self._plot_program_data['time_s'].iloc[-1], self._xlim_num[1]])
+        _xlim = [ttime.ctime(self._xlim_num[0]), ttime.ctime(self._xlim_num[1])]
+
+        masses = []
+        for rga_mass in self.rga_masses:
+            masses.append(str(rga_mass.get()))
+
+        update_figure([self.figure_rga.ax], self.toolbar_rga, self.canvas_rga)
+        for rga_ch, mass in zip(self.rga_channels, masses):
+            dataset = df[rga_ch.name]
+            indx = rga_ch.name[-1]
+            if getattr(self, f'checkBox_rga{indx}').isChecked():
+                # put -5 in the winter, -4 in the summer
+                self.figure_rga.ax.plot(dataset['time'] + timedelta(hours=-4), dataset['data'], label=f'{mass} amu')
+        self.figure_rga.ax.grid(alpha=0.4)
+        self.figure_rga.ax.xaxis.set_major_formatter(data_format)
+        self.figure_rga.ax.set_xlim(_xlim)
+        self.figure_rga.ax.autoscale_view(tight=True)
+        self.figure_rga.ax.set_yscale('log')
+        self.figure_rga.tight_layout()
+        self.figure_rga.ax.legend(loc=6)
+        self.canvas_rga.draw_idle()
+
+        update_figure([self.figure_temp.ax], self.toolbar_temp, self.canvas_temp)
+
+        dataset_rb = df['temp2']
+        dataset_sp = df['temp2_sp']
+
+        self.figure_temp.ax.plot(dataset_sp['time'] + timedelta(hours=-4), dataset_sp['data'], label='T setpoint')
+        self.figure_temp.ax.plot(dataset_rb['time'] + timedelta(hours=-4), dataset_rb['data'], label='T readback')
+        self.plot_pid_program()
+
+        self.figure_temp.ax.grid(alpha=0.4)
+        self.figure_temp.ax.xaxis.set_major_formatter(data_format)
+        self.figure_temp.ax.set_xlim(_xlim)
+        self.figure_temp.ax.set_ylim(self.spinBox_temp_range_min.value(),
+                                     self.spinBox_temp_range_max.value())
+        self.figure_temp.ax.autoscale_view(tight=True)
+        self.figure_temp.tight_layout()
+        self.figure_temp.ax.legend(loc=6)
+        self.canvas_temp.draw_idle()
 
 
-            some_time_ago = now - 3600 * timewindow
-            df = self.archiver.tables_given_times(some_time_ago, now)
-            self._df_ = df
-
-
-            masses = []
-            for rga_mass in self.rga_masses:
-                masses.append(str(rga_mass.get()))
-
-
-            update_figure([self.figure_rga.ax], self.toolbar_rga, self.canvas_rga)
-            for rga_ch, mass in zip(self.rga_channels, masses):
-                dataset = df[rga_ch.name]
-                indx = rga_ch.name[-1]
-                if getattr(self, f'checkBox_rga{indx}').isChecked():
-                    # put -5 in the winter, -4 in the summer
-                    self.figure_rga.ax.plot(dataset['time']+timedelta(hours=-4),dataset['data'], label = f'{mass} amu')
-            self.figure_rga.ax.grid(alpha=0.4)
-            self.figure_rga.ax.xaxis.set_major_formatter(data_format)
-            self.figure_rga.ax.set_xlim(ttime.ctime(some_time_ago), ttime.ctime(now))
-            self.figure_rga.ax.autoscale_view(tight=True)
-            self.figure_rga.ax.set_yscale('log')
-            self.figure_rga.tight_layout()
-            self.figure_rga.ax.legend(loc=6)
-            self.canvas_rga.draw_idle()
-
-            update_figure([self.figure_temp.ax], self.toolbar_temp, self.canvas_temp)
-
-            dataset_rb = df['temp2']
-            dataset_sp = df['temp2_sp']
-
-            self.figure_temp.ax.plot(dataset_sp['time'] + timedelta(hours=-4), dataset_sp['data'], label='T setpoint')
-            self.figure_temp.ax.plot(dataset_rb['time']+timedelta(hours=-4),dataset_rb['data'], label = 'T readback')
-
-            self.figure_temp.ax.grid(alpha=0.4)
-            self.figure_temp.ax.xaxis.set_major_formatter(data_format)
-            self.figure_temp.ax.set_xlim(ttime.ctime(some_time_ago), ttime.ctime(now))
-            self.figure_temp.ax.set_ylim(self.spinBox_temp_range_min.value(),
-                                         self.spinBox_temp_range_max.value())
-            self.figure_temp.ax.autoscale_view(tight=True)
-            self.figure_temp.tight_layout()
-            self.figure_temp.ax.legend(loc=6)
-            self.canvas_temp.draw_idle()
-
-
-            # update_figure([self.figure_temp.ax], self.toolbar_temp, self.canvas_temp)
-            # if self.radioButton_current_control.isChecked():
-            #     dataset1 = df[self.temps[0].name]
-            #     dataset2 = df[self.temps_sp[0].name]
-            # else:
-            #     dataset1 = df[self.temps[1].name]
-            #     dataset2 = df[self.temps_sp[1].name]
-            #
-            # XLIM = [dataset1['time'].iloc[0] + timedelta(hours=-4),
-            #         dataset1['time'].iloc[-1] + timedelta(hours=-4)]
-            #
-            # self.figure_temp.ax.plot(dataset1['time'] + timedelta(hours=-4), dataset1['data'], label='T readback')
-            # self.figure_temp.ax.plot(dataset2['time'] + timedelta(hours=-4), dataset2['data'], label='T setpoint')
-            # if self.plot_program:
-            #     if self.program_plot_moving_flag:
-            #         self.update_plot_program_data()
-            #     self.figure_temp.ax.plot(self.program_dataset['time'],
-            #                              self.program_dataset['data'], 'k:', label='T program')
-            #     XLIM[1] = np.max([self.program_dataset['time'].iloc[-1], dataset1['time'].iloc[-1] + timedelta(hours=-4)])
-            #
-            #
-            # self.figure_temp.ax.xaxis.set_major_formatter(data_format)
-            # self.figure_temp.ax.set_xlim(XLIM)
-            # self.figure_temp.ax.relim(visible_only=
-            # self.figure_temp.ax.grid(alpha=0.4)
-            # self.figure_temp.ax.autoscale_view(tight=True)
-            # self.figure_temp.tight_layout()
-            # self.figure_temp.ax.legend(loc=5)
-            # self.canvas_temp.draw_idle()
-
-            # Check rector/exhaust status
-            for indx_ch in range(2):
-                for outlet in  ['reactor', 'exhaust']:
-                    status_label = getattr(self, f'label_ch{indx_ch + 1}_{outlet}_status')
-
-                    if self.ghs['channels'][f'{indx_ch + 1}'][outlet].get():
-                        status_label.setStyleSheet('background-color: rgb(0,255,0)')
-                    else:
-                        status_label.setStyleSheet('background-color: rgb(255,0,0)')
+    def update_status(self):
+        if self.checkBox_update.isChecked():
+            self.update_ghs_status()
+            self.update_sample_env_status()
+            self.update_plotting_status()
 
 
 
-                for indx_mnf in range(8):
-                    mfc_sp_widget = getattr(self, f'spinBox_ch{indx_ch + 1}_mnf{indx_mnf + 1}_mfc_sp')
-                    value = "{:.2f} sccm".format(self.ghs['channels'][f'{indx_ch+1}'][f'mfc{indx_mnf+1}_rb'].get())
-                    getattr(self, f'label_ch{indx_ch+1}_mnf{indx_mnf+1}_mfc_rb').setText(value)
 
-                    mfc_sp_widget = getattr(self, f'spinBox_ch{indx_ch + 1}_mnf{indx_mnf + 1}_mfc_sp')
-                    st = mfc_sp_widget.blockSignals(True)
-                    value = self.ghs['channels'][f'{indx_ch + 1}'][f'mfc{indx_mnf + 1}_sp'].get()
-                    if not mfc_sp_widget.hasFocus():
-                        mfc_sp_widget.setValue(value)
-                    mfc_sp_widget.blockSignals(st)
 
-                    sp =  self.ghs['channels'][f'{indx_ch + 1}'][f'mfc{indx_mnf + 1}_sp'].get()
-                    rb =  self.ghs['channels'][f'{indx_ch+1}'][f'mfc{indx_mnf+1}_rb'].get()
-                    status_label = getattr(self, f'label_ch{indx_ch+1}_mnf{indx_mnf+1}_mfc_status')
 
-                    #Check if the setpoints and readbacks are close
-                    if sp > 0:
-                        error = np.abs((rb - sp)/sp)
-                        if error > 0.1:
-                            status_label.setStyleSheet('background-color: rgb(255,0,0)')
-                        elif error > 0.02:
-                            status_label.setStyleSheet('background-color: rgb(255,240,24)')
-                        else:
-                            status_label.setStyleSheet('background-color: rgb(0,255,0)')
-                    else:
-                        status_label.setStyleSheet('background-color: rgb(171,171,171)')
+
+
+
+
+
+
+
+
+
+
+    def read_program_data(self):
+        table = self.tableWidget_program
+        nrows = table.rowCount()
+        times = []
+        sps = [] # setpoints
+        for i in range(nrows):
+            this_time = table.item(i, 0)
+            this_sp = table.item(i, 1)
+
+            if this_time and this_sp:
+                try:
+                    times.append(float(this_time.text()))
+                except:
+                    message_box('Error', 'Time must be numerical')
+                    raise ValueError('time must be numerical')
+                try:
+                    sps.append(float(this_sp.text()))
+                except:
+                    message_box('Error', 'Temperature must be numerical')
+                    raise ValueError('Temperature must be numerical')
+
+        times = np.hstack((0, np.array(times))) * 60
+        sps = np.hstack((self.current_sample_env.current_pv_reading(), np.array(sps)))
+        print('The parsed program:')
+        for _time, _sp in zip(times, sps):
+            print('time', _time, '\ttemperature', _sp)
+        self.pid_program = {'times' : times, 'setpoints' : sps}
+
+    def visualize_program(self):
+        self.read_program_data()
+        self.plot_program_flag = True
+        self.program_plot_moving_flag = True
+        self.update_plot_program_data()
+        self.update_status()
+
+
+    def update_plot_program_data(self):
+        if self.pid_program is not None:
+            times = (ttime.time() + self.pid_program['times'])
+            datetimes = [datetime.fromtimestamp(i).strftime('%Y-%m-%d %H:%M:%S') for i in times]
+            self._plot_program_data = pd.DataFrame({'time': pd.to_datetime(datetimes, format='%Y-%m-%d %H:%M:%S'),
+                                                    'data': self.pid_program['setpoints'],
+                                                    'time_s' : times})
+
+
+    def plot_pid_program(self):
+        if self.plot_program_flag:
+            if self.program_plot_moving_flag:
+                self.update_plot_program_data()
+            if self._plot_program_data is not None:
+                self.figure_temp.ax.plot(self._plot_program_data['time'],
+                                         self._plot_program_data['data'], 'k:', label='Program Viz')
+
+
+    def clear_program(self):
+        self.tableWidget_program.clear()
+        self.init_table_widget()
+        self.plot_program_flag = False
+        self.program_plot_moving_flag = False
+        self._plot_program_data = None
+        self.pid_program = None
+        self.update_status()
+
+
+    def start_program(self):
+        # if self.pid_program is None:
+        #     self.read_program_data()
+        self.visualize_program()
+        self.program_plot_moving_flag = False
+        self.current_sample_env.ramp_start(self.pid_program['times'].tolist(),
+                                           self.pid_program['setpoints'].tolist())
+
+    def pause_program(self, value):
+        if value == 1:
+            self.current_sample_env.ramp_pause()
+        else:
+            self.current_sample_env.ramp_continue()
+
+    def stop_program(self):
+        self.current_sample_env.ramp_stop()
+
+    def change_rga_mass(self):
+        sender_object = QObject().sender()
+        indx = sender_object.objectName()[-1]
+        self.RE(bps.mv(self.rga_masses[int(indx) - 1], sender_object.value()))
 
     def set_mfc_cart_flow(self):
         sender = QObject()
@@ -364,78 +456,6 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         indx_mfc = int(re.findall(r'\d+', sender_name)[0])
         self.mfcs[indx_mfc - 1].sp.set(value)
 
-    def visualize_program(self):
-        if self.program_sps is None:
-            self.read_program_data()
-        self.program_plot_moving_flag = True
-        self.update_status()
-
-    def read_program_data(self):
-        print('Starting the Temperature program')
-        table = self.tableWidget_program
-        nrows = table.rowCount()
-        times = []
-        temps = []
-        for i in range(nrows):
-            this_time = table.item(i, 1)
-            this_temp = table.item(i, 0)
-
-            if this_time and this_temp:
-                try:
-                    times.append(float(this_time.text()))
-                except:
-                    message_box('Error', 'Time must be numerical')
-                    raise ValueError('time must be numerical')
-                try:
-                    temps.append(float(this_temp.text()))
-                except:
-                    message_box('Error', 'Temperature must be numerical')
-                    raise ValueError('Temperature must be numerical')
-
-        times = np.hstack((0, np.array(times))) * 60
-        temps = np.hstack((self.temps[0].get(), np.array(temps)))
-        print('times', times, 'temperatures', temps)
-        self.program_time = np.arange(times[0], times[-1] + self.program_update_time, self.program_update_time)
-
-        self.program_sps = np.interp(self.program_time, times, temps)
-        self.plot_program = True
-        self.update_plot_program_data()
-
-    def start_program(self):
-        if self.program_sps is None:
-            self.read_program_data()
-        self.program_plot_moving_flag = False
-
-        self.program_idx = 0
-        self.init_time = ttime.time()
-        self.RE(bps.mv(self.heater_enable1, 1))
-        self.timer_program.start()
-
-        # for this_time, this_temp in zip(times, temps):
-        #     self.init_time = ttime.time()
-        #     init_temp =  self.temps[0].get()
-        #     self.a = (this_temp-init_temp)/this_time
-        #     self.b = this_temp
-        #     self.timer_program.start()
-        #     while self.temps[0].get() - 7
-
-    def update_plot_program_data(self):
-        datetimes = [datetime.fromtimestamp(i).strftime('%Y-%m-%d %H:%M:%S') for i in
-                     (ttime.time() + self.program_time)]
-        self.program_dataset = pd.DataFrame({'time': pd.to_datetime(datetimes, format='%Y-%m-%d %H:%M:%S'),
-                                             'data': self.program_sps})
-
-    def update_temp_sp(self):
-        current_time = ttime.time()
-        try:
-            this_sp = self.program_sps[self.program_idx]
-        except IndexError:
-            this_sp = self.program_sps[-1]
-            self.timer_program.stop()
-        print('time passed:', current_time - self.init_time, 'index:', self.program_idx, 'setpoint:', this_sp)
-
-        # self.temps_sp[0].put(this_sp)
-        self.program_idx += 1
 
     def toggle_exhaust_reactor(self):
         sender = QObject()
@@ -494,26 +514,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
 
 
-class ramp_thread(QThread):
-    def __init__(self, parent):
-        QThread.__init__(self)
-        self.parent = parent
-        self.initial_temp = 24
-        self.go = 0
 
-    def run(self):
-        interval = 0.1
-        self.initial_temp = 24
-        self.go = 1
-        temp = self.initial_temp
-        self.parent.pid_enable.put(1)
-        while (self.go):
-            self.parent.pid_value.put(temp)
-            self.parent.heater_sp.put(temp)
-            ttime.sleep(1*interval)
-            if temp < 500:
-                temp +=0.1*interval
-            #print(f'Setpoint temp  {temp} C')
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
