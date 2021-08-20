@@ -1,7 +1,7 @@
 import os
 import re
 import sys
-import time as ttime
+
 import matplotlib
 # matplotlib.use('WXAgg')
 import matplotlib.patches as mpatches
@@ -151,6 +151,12 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.timer_update_time.singleShot(0, self.update_status)
         self.timer_update_time.start()
 
+        self.timer_sample_env_status = QtCore.QTimer(self)
+        self.timer_sample_env_status.setInterval(500)
+        self.timer_sample_env_status.timeout.connect(self.update_sample_env_status)
+        self.timer_sample_env_status.singleShot(0, self.update_sample_env_status)
+        self.timer_sample_env_status.start()
+
 
 
 
@@ -265,9 +271,9 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
     def update_sample_env_status(self):
         sample_env = self.current_sample_env
-        self.label_pv_rb.setText(f'{sample_env.pv_name} RB: {sample_env.pv.get()}')
-        self.label_pv_sp.setText(f'{sample_env.pv_name} SP: {sample_env.pv_sp.get()}')
-        self.label_output_rb.setText(f'Output {sample_env.pv_output_name} RB: {sample_env.pv_output.get()} {sample_env.pv_output_units}')
+        self.label_pv_rb.setText(f'{sample_env.pv_name} RB: {np.round(sample_env.pv.get(), 2)}')
+        self.label_pv_sp.setText(f'{sample_env.pv_name} SP: {np.round(sample_env.pv_sp.get(), 2)}')
+        self.label_output_rb.setText(f'Output {sample_env.pv_output_name} RB: {np.round(sample_env.pv_output.get(), 2)} {sample_env.pv_output_units}')
 
         if sample_env.enabled.get() == 1:
             self.label_output_pid_status.setStyleSheet('background-color: rgb(255,0,0)')
@@ -285,6 +291,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         elif sample_env.ramper.go.get() == 0:
             self.label_program_status.setStyleSheet('background-color: rgb(171,171,171)')
             self.label_program_status.setText('OFF')
+
 
     def update_plotting_status(self):
         now = ttime.time()
@@ -325,6 +332,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
         dataset_rb = df['temp2']
         dataset_sp = df['temp2_sp']
+        dataset_sp = self._pad_dataset_sp(dataset_sp, dataset_rb['time'].values[-1])
 
         self.figure_temp.ax.plot(dataset_sp['time'] + timedelta(hours=-4), dataset_sp['data'], label='T setpoint')
         self.figure_temp.ax.plot(dataset_rb['time'] + timedelta(hours=-4), dataset_rb['data'], label='T readback')
@@ -341,25 +349,37 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.canvas_temp.draw_idle()
 
 
+    def _pad_dataset_sp(self, df, latest_time, delta_thresh=0.1):
+        _time = df['time'].values
+        _data = df['data'].values
+        n_rows = _time.size
+        idxs = np.where(np.diff(_time).astype(int) * 1e-9 > delta_thresh)[0] + 1
+        time = []
+        data = []
+        for idx in range(n_rows):
+            if idx in idxs:
+                insert_time = (_time[idx] - int(0.05*1.0e9)).astype('datetime64[ns]')
+                time.append(insert_time)
+                data.append(_data[idx-1])
+            time.append(_time[idx])
+            data.append(_data[idx])
+
+        if (time[-1] - latest_time)<0:
+            time.append(latest_time)
+            data.append(data[-1])
+        df_out = pd.DataFrame({'time' : time, 'data' : data})
+        return df_out
+
+
+
+
+
+
+
     def update_status(self):
         if self.checkBox_update.isChecked():
             self.update_ghs_status()
-            self.update_sample_env_status()
             self.update_plotting_status()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     def read_program_data(self):
