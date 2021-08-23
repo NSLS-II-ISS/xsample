@@ -349,7 +349,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.canvas_temp.draw_idle()
 
 
-    def _pad_dataset_sp(self, df, latest_time, delta_thresh=0.1):
+    def _pad_dataset_sp(self, df, latest_time, delta_thresh=15):
         _time = df['time'].values
         _data = df['data'].values
         n_rows = _time.size
