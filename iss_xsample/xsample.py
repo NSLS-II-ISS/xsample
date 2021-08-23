@@ -273,7 +273,9 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         sample_env = self.current_sample_env
         self.label_pv_rb.setText(f'{sample_env.pv_name} RB: {np.round(sample_env.pv.get(), 2)}')
         self.label_pv_sp.setText(f'{sample_env.pv_name} SP: {np.round(sample_env.pv_sp.get(), 2)}')
+        self.label_pv_sp_rate.setText(f'{sample_env.pv_name} SP rate: {np.round(sample_env.ramper.pv_sp_rate.get(), 2)}')
         self.label_output_rb.setText(f'Output {sample_env.pv_output_name} RB: {np.round(sample_env.pv_output.get(), 2)} {sample_env.pv_output_units}')
+
 
         if sample_env.enabled.get() == 1:
             self.label_output_pid_status.setStyleSheet('background-color: rgb(255,0,0)')
