@@ -38,6 +38,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
     def __init__(self,
                  mfcs = [],
+                 total_flow_meter = None,
                  rga_channels = [],
                  rga_masses = [],
                  heater_enable1 = [],
@@ -52,6 +53,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.setupUi(self)
         self.addCanvas()
         self.mfcs = mfcs
+        self.total_flow_meter = total_flow_meter
         self.rga_channels = rga_channels
         self.rga_masses = rga_masses
         self.ghs = ghs
@@ -114,6 +116,13 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
             getattr(self,f'radioButton_ch{indx_ch+1}_reactor').toggled.connect(self.toggle_exhaust_reactor)
             getattr(self, f'radioButton_ch{indx_ch+1}_exhaust').toggled.connect(self.toggle_exhaust_reactor)
+
+            getattr(self, f'radioButton_ch{indx_ch + 1}_bypass1').toggled.connect(self.toggle_bypass_bubbler)
+            getattr(self, f'radioButton_ch{indx_ch + 1}_bypass2').toggled.connect(self.toggle_bypass_bubbler)
+
+            getattr(self, f'radioButton_ch{indx_ch + 1}_bubbler1').toggled.connect(self.toggle_bypass_bubbler)
+            getattr(self, f'radioButton_ch{indx_ch + 1}_bubbler2').toggled.connect(self.toggle_bypass_bubbler)
+
 
             # set signal handling of gas selector widgets
             for indx_mnf in range(5):
@@ -268,6 +277,11 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                 else:
                     status_label.setStyleSheet('background-color: rgb(171,171,171)')
 
+        if self.checkBox_total_flow_open.isChecked():
+            self.total_flow_meter.sp.set(100)
+        self.label_total_flow.setText(f'{str(self.total_flow_meter.get().rb)} sccm')
+
+
 
     def update_sample_env_status(self):
         sample_env = self.current_sample_env
@@ -370,12 +384,6 @@ class XsampleGui(*uic.loadUiType(ui_path)):
             data.append(data[-1])
         df_out = pd.DataFrame({'time' : time, 'data' : data})
         return df_out
-
-
-
-
-
-
 
     def update_status(self):
         if self.checkBox_update.isChecked():
@@ -492,6 +500,21 @@ class XsampleGui(*uic.loadUiType(ui_path)):
             ttime.sleep(2)
             self.ghs['channels'][ch_num]['exhaust'].set(0)
 
+    def toggle_bypass_bubbler(self):
+        sender = QObject()
+        sender_object = sender.sender()
+        sender_name = sender_object.objectName()
+        ch_num = sender_name[14]
+        bypass_num = sender_name[-1]
+        if (sender_name.endswith('bypass1') or sender_name.endswith('bypass2')) and sender_object.isChecked():
+            self.RE(bps.mv(self.ghs['channels'][ch_num][f'bypass{bypass_num}'], 1))
+            self.RE(bps.mv(self.ghs['channels'][ch_num][f'bubbler{bypass_num}_1'], 0))
+            self.RE(bps.mv(self.ghs['channels'][ch_num][f'bubbler{bypass_num}_2'], 0))
+        elif (sender_name.endswith('bubbler1') or sender_name.endswith('bubbler2')) and sender_object.isChecked():
+            self.RE(bps.mv(self.ghs['channels'][ch_num][f'bypass{bypass_num}'], 0))
+            self.RE(bps.mv(self.ghs['channels'][ch_num][f'bubbler{bypass_num}_1'], 1))
+            self.RE(bps.mv(self.ghs['channels'][ch_num][f'bubbler{bypass_num}_2'], 1))
+
     def select_gases(self):
         sender = QObject()
         sender_object = sender.sender()
@@ -515,7 +538,6 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         sender = QObject()
         sender_object = sender.sender()
         sender_name = sender_object.objectName()
-
         indx_ch, indx_mnf = re.findall(r'\d+', sender_name)
         if sender_object.isChecked():
             self.ghs['channels'][indx_ch][f'mnf{indx_mnf}_vlv_upstream'].set(1)

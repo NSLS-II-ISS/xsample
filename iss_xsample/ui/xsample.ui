@@ -31,7 +31,7 @@
       <x>1830</x>
       <y>70</y>
       <width>227</width>
-      <height>291</height>
+      <height>334</height>
      </rect>
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout">
@@ -296,7 +296,7 @@
      <rect>
       <x>10</x>
       <y>10</y>
-      <width>611</width>
+      <width>661</width>
       <height>911</height>
      </rect>
     </property>
@@ -1916,7 +1916,7 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_22">
        <item>
-        <widget class="QRadioButton" name="radioButton_13">
+        <widget class="QRadioButton" name="radioButton_ch2_bypass2">
          <property name="text">
           <string>Bypass 1</string>
          </property>
@@ -1926,9 +1926,9 @@
         </widget>
        </item>
        <item>
-        <widget class="QRadioButton" name="radioButton_14">
+        <widget class="QRadioButton" name="radioButton_ch2_bubbler2">
          <property name="enabled">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <property name="text">
           <string>Bubbler 1</string>
@@ -1948,7 +1948,7 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_21">
        <item>
-        <widget class="QRadioButton" name="radioButton_11">
+        <widget class="QRadioButton" name="radioButton_ch2_bypass1">
          <property name="text">
           <string>Bypass 1</string>
          </property>
@@ -1958,9 +1958,9 @@
         </widget>
        </item>
        <item>
-        <widget class="QRadioButton" name="radioButton_12">
+        <widget class="QRadioButton" name="radioButton_ch2_bubbler1">
          <property name="enabled">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <property name="text">
           <string>Bubbler 1</string>
@@ -2174,12 +2174,12 @@ monoxide</string>
        <x>480</x>
        <y>40</y>
        <width>102</width>
-       <height>59</height>
+       <height>60</height>
       </rect>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_7">
       <item>
-       <widget class="QRadioButton" name="radioButton_3">
+       <widget class="QRadioButton" name="radioButton_ch1_bypass1">
         <property name="text">
          <string>Bypass 1</string>
         </property>
@@ -2189,9 +2189,9 @@ monoxide</string>
        </widget>
       </item>
       <item>
-       <widget class="QRadioButton" name="radioButton_4">
+       <widget class="QRadioButton" name="radioButton_ch1_bubbler1">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="text">
          <string>Bubbler 1</string>
@@ -2211,7 +2211,7 @@ monoxide</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_8">
       <item>
-       <widget class="QRadioButton" name="radioButton_9">
+       <widget class="QRadioButton" name="radioButton_ch1_bypass2">
         <property name="text">
          <string>Bypass 1</string>
         </property>
@@ -2221,9 +2221,9 @@ monoxide</string>
        </widget>
       </item>
       <item>
-       <widget class="QRadioButton" name="radioButton_10">
+       <widget class="QRadioButton" name="radioButton_ch1_bubbler2">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="text">
          <string>Bubbler 1</string>
@@ -2231,6 +2231,54 @@ monoxide</string>
        </widget>
       </item>
      </layout>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_6">
+     <property name="geometry">
+      <rect>
+       <x>440</x>
+       <y>780</y>
+       <width>201</width>
+       <height>80</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Total flow</string>
+     </property>
+     <widget class="QWidget" name="horizontalLayoutWidget_2">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>165</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QLabel" name="label_total_flow">
+         <property name="maximumSize">
+          <size>
+           <width>75</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>TextLabel</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_total_flow_open">
+         <property name="text">
+          <string>fully open</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </widget>
    <widget class="QLabel" name="label_ch1_mnf3_mfc_status_4">
