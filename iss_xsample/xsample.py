@@ -333,7 +333,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
             indx = rga_ch.name[-1]
             if getattr(self, f'checkBox_rga{indx}').isChecked():
                 # put -5 in the winter, -4 in the summer
-                self.figure_rga.ax.plot(dataset['time'] + timedelta(hours=-4), dataset['data'], label=f'{mass} amu')
+                self.figure_rga.ax.plot(dataset['time'] + timedelta(hours=-5), dataset['data'], label=f'{mass} amu')
         self.figure_rga.ax.grid(alpha=0.4)
         self.figure_rga.ax.xaxis.set_major_formatter(data_format)
         self.figure_rga.ax.set_xlim(_xlim)
@@ -349,8 +349,8 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         dataset_sp = df['temp2_sp']
         dataset_sp = self._pad_dataset_sp(dataset_sp, dataset_rb['time'].values[-1])
 
-        self.figure_temp.ax.plot(dataset_sp['time'] + timedelta(hours=-4), dataset_sp['data'], label='T setpoint')
-        self.figure_temp.ax.plot(dataset_rb['time'] + timedelta(hours=-4), dataset_rb['data'], label='T readback')
+        self.figure_temp.ax.plot(dataset_sp['time'] + timedelta(hours=-5), dataset_sp['data'], label='T setpoint')
+        self.figure_temp.ax.plot(dataset_rb['time'] + timedelta(hours=-5), dataset_rb['data'], label='T readback')
         self.plot_pid_program()
 
         self.figure_temp.ax.grid(alpha=0.4)
