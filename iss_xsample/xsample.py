@@ -208,7 +208,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.tableWidget_program.setColumnCount(2)
         self.tableWidget_program.setRowCount(10)
         setpoint_name = f'{self.current_sample_env.pv_name}\nsetpoint ({self.current_sample_env.pv_units})'
-        self.tableWidget_program.setHorizontalHeaderLabels(('Time (min)', setpoint_name))
+        self.tableWidget_program.setHorizontalHeaderLabels(('Time intervals (min)', setpoint_name))
 
 
 
@@ -394,7 +394,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
     def read_program_data(self):
         table = self.tableWidget_program
         nrows = table.rowCount()
-        times = []
+        times = [] # intervals
         sps = [] # setpoints
         for i in range(nrows):
             this_time = table.item(i, 0)
@@ -412,6 +412,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                     message_box('Error', 'Temperature must be numerical')
                     raise ValueError('Temperature must be numerical')
 
+        times = np.cumsum(times)
         times = np.hstack((0, np.array(times))) * 60
         sps = np.hstack((self.current_sample_env.current_pv_reading(), np.array(sps)))
         print('The parsed program:')
