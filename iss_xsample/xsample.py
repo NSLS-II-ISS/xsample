@@ -19,6 +19,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
     NavigationToolbar2QT as NavigationToolbar
 import bluesky.plan_stubs as bps
 
+# checkBox_ch1_mnf1_enable
 
 from matplotlib.figure import Figure
 from isstools.elements.figure_update import update_figure
@@ -251,8 +252,10 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
             for indx_mnf in range(8):
                 mfc_sp_widget = getattr(self, f'spinBox_ch{indx_ch + 1}_mnf{indx_mnf + 1}_mfc_sp')
+                mfc_rb_label = getattr(self, f'label_ch{indx_ch + 1}_mnf{indx_mnf + 1}_mfc_rb')
                 value = "{:.2f} sccm".format(self.ghs['channels'][f'{indx_ch + 1}'][f'mfc{indx_mnf + 1}_rb'].get())
-                getattr(self, f'label_ch{indx_ch + 1}_mnf{indx_mnf + 1}_mfc_rb').setText(value)
+
+                mfc_rb_label.setText(value)
 
                 mfc_sp_widget = getattr(self, f'spinBox_ch{indx_ch + 1}_mnf{indx_mnf + 1}_mfc_sp')
                 st = mfc_sp_widget.blockSignals(True)
@@ -269,24 +272,31 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                 if sp > 0:
                     error = np.abs((rb - sp) / sp)
                     if error > 0.1:
-                        status_label.setStyleSheet('background-color: rgb(255,0,0)')
+                        mfc_rb_label.setStyleSheet('background-color: rgb(255,0,0)')
                     elif error > 0.02:
-                        status_label.setStyleSheet('background-color: rgb(255,240,24)')
+                        mfc_rb_label.setStyleSheet('background-color: rgb(255,240,24)')
                     else:
-                        status_label.setStyleSheet('background-color: rgb(0,255,0)')
+                        mfc_rb_label.setStyleSheet('background-color: rgb(0,255,0)')
                 else:
-                    status_label.setStyleSheet('background-color: rgb(171,171,171)')
+                    mfc_rb_label.setStyleSheet('background-color: rgb(171,171,171)')
 
 
         for indx_ch in range(2):
             for indx_mnf in range(8):
                 upstream_valve_label =  getattr(self, f'label_ch{indx_ch + 1}_valve{indx_mnf + 1}_status')
+                dnstream_valve_label = getattr(self, f'label_ch{indx_ch + 1}_mnf{indx_mnf + 1}_mfc_status')
 
                 upstream_valve_status = self.ghs['channels'][f'{indx_ch + 1}'][f'mnf{indx_mnf + 1}_vlv_upstream'].get()
+                dnstream_valve_status = self.ghs['channels'][f'{indx_ch + 1}'][f'mnf{indx_mnf + 1}_vlv_dnstream'].get()
                 if upstream_valve_status == 0:
                     upstream_valve_label.setStyleSheet('background-color: rgb(255,0,0)')
                 else:
                     upstream_valve_label.setStyleSheet('background-color: rgb(0,255,0)')
+
+                if dnstream_valve_status == 0:
+                   dnstream_valve_label.setStyleSheet('background-color: rgb(255,0,0)')
+                else:
+                    dnstream_valve_label.setStyleSheet('background-color: rgb(0,255,0)')
 
 
 
@@ -561,11 +571,18 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         sender_object = sender.sender()
         sender_name = sender_object.objectName()
         indx_ch, indx_mnf = re.findall(r'\d+', sender_name)
+        if indx_ch == '1':
+            indx_other_ch = '2'
+        elif indx_ch == '2':
+            indx_other_ch = '1'
+
         if sender_object.isChecked():
             self.ghs['channels'][indx_ch][f'mnf{indx_mnf}_vlv_upstream'].set(1)
             self.ghs['channels'][indx_ch][f'mnf{indx_mnf}_vlv_dnstream'].set(1)
         else:
-            self.ghs['channels'][indx_ch][f'mnf{indx_mnf}_vlv_upstream'].set(0)
+            other_ch_status = getattr(self, f'checkBox_ch{indx_other_ch}_mnf{indx_mnf}_enable').isChecked()
+            if not other_ch_status:
+                self.ghs['channels'][indx_ch][f'mnf{indx_mnf}_vlv_upstream'].set(0)
             self.ghs['channels'][indx_ch][f'mnf{indx_mnf}_vlv_dnstream'].set(0)
 
     def set_flow_rates(self):
