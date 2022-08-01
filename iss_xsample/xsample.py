@@ -131,7 +131,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                 gas_selector_widget.setCurrentIndex(self.gas_mapper[f'{indx_mnf+1}'][gas])
                 gas_selector_widget.currentIndexChanged.connect(self.select_gases)
             # set signal handling of gas channle enable widgets
-            rb_outlet.setChecked(True)
+            # rb_outlet.setChecked(True)
 
 
             for indx_mnf in range(8): # going over manifold gas enable checkboxes
@@ -277,9 +277,28 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                 else:
                     status_label.setStyleSheet('background-color: rgb(171,171,171)')
 
+
+        for indx_ch in range(2):
+            for indx_mnf in range(8):
+                upstream_valve_label =  getattr(self, f'label_ch{indx_ch + 1}_valve{indx_mnf + 1}_status')
+
+                upstream_valve_status = self.ghs['channels'][f'{indx_ch + 1}'][f'mnf{indx_mnf + 1}_vlv_upstream'].get()
+                if upstream_valve_status == 0:
+                    upstream_valve_label.setStyleSheet('background-color: rgb(255,0,0)')
+                else:
+                    upstream_valve_label.setStyleSheet('background-color: rgb(0,255,0)')
+
+
+
         if self.checkBox_total_flow_open.isChecked():
             self.total_flow_meter.sp.set(100)
         self.label_total_flow.setText(f'{str(self.total_flow_meter.get().rb)} sccm')
+
+
+
+
+
+
 
 
 
@@ -306,6 +325,8 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         elif sample_env.ramper.go.get() == 0:
             self.label_program_status.setStyleSheet('background-color: rgb(171,171,171)')
             self.label_program_status.setText('OFF')
+
+
 
 
     def update_plotting_status(self):
