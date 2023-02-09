@@ -38,7 +38,7 @@ register_matplotlib_converters()
 class XsampleGui(*uic.loadUiType(ui_path)):
 
     def __init__(self,
-                 mfcs = [],
+                 gas_cart = [],
                  total_flow_meter = None,
                  rga_channels = [],
                  rga_masses = [],
@@ -53,7 +53,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
         self.setupUi(self)
         self.addCanvas()
-        self.mfcs = mfcs
+        self.gas_cart = gas_cart
         self.total_flow_meter = total_flow_meter
         self.rga_channels = rga_channels
         self.rga_masses = rga_masses
@@ -99,7 +99,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
         for indx_mfc in range(3):
             mfc_widget = getattr(self, f'spinBox_cart_mfc{indx_mfc+1}_sp')
-            mfc_widget.setValue(self.mfcs[indx_mfc].sp.get())
+            mfc_widget.setValue(self.gas_cart[indx_mfc+1]['mfc'].sp.get())
             mfc_widget.editingFinished.connect(self.set_mfc_cart_flow)
 
 
@@ -124,6 +124,9 @@ class XsampleGui(*uic.loadUiType(ui_path)):
             getattr(self, f'radioButton_ch{indx_ch + 1}_bubbler1').toggled.connect(self.toggle_bypass_bubbler)
             getattr(self, f'radioButton_ch{indx_ch + 1}_bubbler2').toggled.connect(self.toggle_bypass_bubbler)
 
+            self.checkBox_cart_vlv1.toggled.connect(self.toggle_cart_valve)
+            self.checkBox_cart_vlv2.toggled.connect(self.toggle_cart_valve)
+            self.checkBox_cart_vlv3.toggled.connect(self.toggle_cart_valve)
 
             # set signal handling of gas selector widgets
             for indx_mnf in range(5):
@@ -167,9 +170,6 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.timer_sample_env_status.singleShot(0, self.update_sample_env_status)
         self.timer_sample_env_status.start()
 
-
-
-
     def addCanvas(self):
         self.figure_rga = Figure()
         self.figure_rga.set_facecolor(color='#efebe7')
@@ -207,27 +207,25 @@ class XsampleGui(*uic.loadUiType(ui_path)):
     def init_table_widget(self):
         # TODO: make the table length correspond to the max length acceptable by the sample environment
         self.tableWidget_program.setColumnCount(2)
-        self.tableWidget_program.setRowCount(10)
+        self.tableWidget_program.setRowCount(50)
         setpoint_name = f'{self.current_sample_env.pv_name}\nsetpoint ({self.current_sample_env.pv_units})'
         self.tableWidget_program.setHorizontalHeaderLabels(('Time intervals (min)', setpoint_name))
 
-
-
     def update_ghs_status(self):
         # update card MFC setpoints and readbacks
-        for indx_mfc in range(3):
-            mfc_rb_widget = getattr(self, f'spinBox_cart_mfc{indx_mfc + 1}_rb')
-            rb = '{:.1f} sccm'.format(self.mfcs[indx_mfc].rb.get())
+        for indx in range(3):
+            mfc_rb_widget = getattr(self, f'spinBox_cart_mfc{indx + 1}_rb')
+            rb = '{:.1f} sccm'.format(self.gas_cart[indx+1]['mfc'].rb.get())
             mfc_rb_widget.setText(rb)
-            mfc_sp_widget = getattr(self, f'spinBox_cart_mfc{indx_mfc + 1}_sp')
+            mfc_sp_widget = getattr(self, f'spinBox_cart_mfc{indx + 1}_sp')
             st = mfc_sp_widget.blockSignals(True)
-            sp = self.mfcs[indx_mfc].sp.get()
+            sp = self.gas_cart[indx+1]['mfc'].sp.get()
             if not mfc_sp_widget.hasFocus():
                 mfc_sp_widget.setValue(sp)
             mfc_sp_widget.blockSignals(st)
 
             # Check if the setpoints and readbacks are close
-            status_label = getattr(self, f'label_cart_mfc{indx_mfc + 1}_status')
+            status_label = getattr(self, f'label_cart_mfc{indx + 1}_status')
             rb = float(re.findall('\d*\.?\d+', rb)[0])
             if sp > 0:
                 error = np.abs((rb - sp) / sp)
@@ -239,6 +237,13 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                     status_label.setStyleSheet('background-color: rgb(0,255,0)')
             else:
                 status_label.setStyleSheet('background-color: rgb(171,171,171)')
+
+            vlv_status = self.gas_cart[indx+1]['vlv'].status.get()
+            if vlv_status:
+                getattr(self, f'label_cart_vlv{indx + 1}_status').setStyleSheet('background-color: rgb(0,255,0)')
+            else:
+                getattr(self, f'label_cart_vlv{indx + 1}_status').setStyleSheet('background-color: rgb(255,0,0)')
+
 
         # Check rector/exhaust status
         for indx_ch in range(2):
@@ -302,14 +307,9 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
         if self.checkBox_total_flow_open.isChecked():
             self.total_flow_meter.sp.set(100)
+        else:
+            self.total_flow_meter.sp.set(0)
         self.label_total_flow.setText(f'{str(self.total_flow_meter.get().rb)} sccm')
-
-
-
-
-
-
-
 
 
     def update_sample_env_status(self):
@@ -364,7 +364,8 @@ class XsampleGui(*uic.loadUiType(ui_path)):
             indx = rga_ch.name[-1]
             if getattr(self, f'checkBox_rga{indx}').isChecked():
                 # put -5 in the winter, -4 in the summer
-                self.figure_rga.ax.plot(dataset['time'] + timedelta(hours=-4), dataset['data'], label=f'{mass} amu')
+                time_delta = -5
+                self.figure_rga.ax.plot(dataset['time'] + timedelta(hours=time_delta), dataset['data'], label=f'{mass} amu')
         self.figure_rga.ax.grid(alpha=0.4)
         self.figure_rga.ax.xaxis.set_major_formatter(data_format)
         self.figure_rga.ax.set_xlim(_xlim)
@@ -380,8 +381,8 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         dataset_sp = df['temp2_sp']
         dataset_sp = self._pad_dataset_sp(dataset_sp, dataset_rb['time'].values[-1])
 
-        self.figure_temp.ax.plot(dataset_sp['time'] + timedelta(hours=-4), dataset_sp['data'], label='T setpoint')
-        self.figure_temp.ax.plot(dataset_rb['time'] + timedelta(hours=-4), dataset_rb['data'], label='T readback')
+        self.figure_temp.ax.plot(dataset_sp['time'] + timedelta(hours=time_delta), dataset_sp['data'], label='T setpoint')
+        self.figure_temp.ax.plot(dataset_rb['time'] + timedelta(hours=time_delta), dataset_rb['data'], label='T readback')
         self.plot_pid_program()
 
         self.figure_temp.ax.grid(alpha=0.4)
@@ -515,7 +516,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         sender_name = sender_object.objectName()
         value = sender_object.value()
         indx_mfc = int(re.findall(r'\d+', sender_name)[0])
-        self.mfcs[indx_mfc - 1].sp.set(value)
+        self.gas_cart[indx_mfc]['mfc'].sp.set(value)
 
 
     def toggle_exhaust_reactor(self):
@@ -546,6 +547,19 @@ class XsampleGui(*uic.loadUiType(ui_path)):
             self.RE(bps.mv(self.ghs['channels'][ch_num][f'bypass{bypass_num}'], 0))
             self.RE(bps.mv(self.ghs['channels'][ch_num][f'bubbler{bypass_num}_1'], 1))
             self.RE(bps.mv(self.ghs['channels'][ch_num][f'bubbler{bypass_num}_2'], 1))
+
+    def toggle_cart_valve(self):
+        sender = QObject()
+        sender_object = sender.sender()
+        sender_name = sender_object.objectName()
+        ch_num = int(sender_name[-1])
+        if sender_object.isChecked():
+            self.RE(bps.mv(self.gas_cart[ch_num]['vlv'].open,1))
+        else:
+            self.RE(bps.mv(self.gas_cart[ch_num]['vlv'].close,1))
+
+
+
 
     def select_gases(self):
         sender = QObject()
