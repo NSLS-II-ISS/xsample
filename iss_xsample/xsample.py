@@ -26,8 +26,9 @@ from isstools.elements.figure_update import update_figure
 from datetime import timedelta, datetime
 import time as ttime
 from isstools.dialogs.BasicDialogs import message_box
+from iss_xsample.gas_type import GasType
 
-ui_path = pkg_resources.resource_filename('iss_xsample', 'ui/xsample.ui')
+ui_path = pkg_resources.resource_filename('iss_xsample', 'ui/xsample_new.ui')
 
 from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
@@ -39,6 +40,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
     def __init__(self,
                  gas_cart = [],
+                 mobile_gh_system=None,
                  total_flow_meter = None,
                  rga_channels = [],
                  rga_masses = [],
@@ -58,6 +60,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.rga_channels = rga_channels
         self.rga_masses = rga_masses
         self.ghs = ghs
+        self.mobile_gh_system = mobile_gh_system
 
         self.sample_envs_dict = sample_envs_dict
 
@@ -70,6 +73,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.push_pause_program.setChecked(0)
         self.push_pause_program.toggled.connect(self.pause_program)
         self.push_stop_program.clicked.connect(self.stop_program)
+        self.pushButton_reset_cart.clicked.connect(self.reset_cart_plc)
 
         self.pid_program = None
         self.plot_program_flag = False
@@ -170,6 +174,56 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.timer_sample_env_status.singleShot(0, self.update_sample_env_status)
         self.timer_sample_env_status.start()
 
+
+        self._gases = {}
+        self.__ch1 = ["He/N<sub>2</sub>/Ar", "H<sub>2</sub>/NH<sub>3</sub>",
+                                 "CH<sub>4</sub>/C<sub>2</sub>H<sub>4</sub>", "NO<sub>x</sub>/Future",
+                                 "AsH<sub>3</sub>/PH<sub>3</sub>", "O<sub>2</sub>", "CO", "CO<sub>2</sub>"]
+        self.__ch2 = ["He/N<sub>2</sub>/Ar", "H<sub>2</sub>/NH<sub>3</sub>",
+                                 "CH<sub>4</sub>/C<sub>2</sub>H<sub>4</sub>", "NO<sub>x</sub>/Future",
+                                 "AsH<sub>3</sub>/PH<sub>3</sub>"]
+        self.__ch3 = ["Methane", "CO", "H<sub>2</sub>"]
+
+        self._gases['ch1'] = dict(zip(np.arange(1,8,1), self.__ch1))
+        self._gases['ch2'] = dict(zip(np.arange(1,6,1), self.__ch2))
+        self._gases['ch3'] = dict(zip(np.arange(1,4,1), self.__ch3))
+
+        for i in range(1,4):
+            for gas in self._gases['ch'+str(i)].values():
+                getattr(self, f"verticalLayout_gases_ch{i}").addWidget(GasType(self.gas_cart,
+                                                                                self.ghs,
+                                                                                # self.archiver,
+                                                                                gas_name=gas))
+
+       # self.pushButton_add_gases.clicked.connect(self.update_gas_list)
+
+
+    # def update_gas_list(self):
+    #     print(self.)
+        # j = 0
+        # for i in range(len(self.ghs['manifolds'])):
+        #     for key in self.ghs['manifolds'][str(i+1)]['gases'].keys():
+        #         self.gas_label = QtWidgets.QLabel("")
+        #         self.gas_label.setText(key)
+        #         self.gridLayout_gases.addWidget(self.gas_label, j, 0)
+        #
+        #         self.gas_setpoint = QtWidgets.QLineEdit("")
+        #         self.gas_setpoint.setText(f"{0:2.1f} sccm")
+        #         self.gridLayout_gases.addWidget(self.gas_setpoint, j, 1)
+        #         self.gas_setpoint.returnPressed.connect(self.read_gas_flow)
+        #
+        #         self.gas_check_box = QtWidgets.QCheckBox()
+        #         self.gridLayout_gases.addWidget(self.gas_check_box, j, 2)
+        #         # if self.gas_check_box.isChecked:
+        #         j += 1
+
+    # def read_gas_flow(self):
+    #     _user_set_value_text = self.gas_setpoint.text()
+    #     print(_user_set_value_text)
+    #     _user_set_value = float(_user_set_value_text.split()[0])
+    #     print(_user_set_value)
+    #     self.gas_setpoint.setText(f"{_user_set_value} sccm")
+
     def addCanvas(self):
         self.figure_rga = Figure()
         self.figure_rga.set_facecolor(color='#efebe7')
@@ -198,6 +252,8 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.layout_temp.addWidget(self.toolbar_temp)
         self.canvas_temp.draw()
 
+    def reset_cart_plc(self):
+        self.mobile_gh_system.reset()
 
     def sample_env_selected(self):
         _current_key = self.comboBox_sample_envs.currentText()
@@ -607,6 +663,8 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         indx_ch, indx_mnf = re.findall(r'\d+', sender_name)
         value = sender_object.value()
         self.ghs['channels'][indx_ch][f'mfc{indx_mnf}_sp'].set(value)
+
+
 
 
 
