@@ -420,7 +420,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
             indx = rga_ch.name[-1]
             if getattr(self, f'checkBox_rga{indx}').isChecked():
                 # put -5 in the winter, -4 in the summer
-                time_delta = -5
+                time_delta = -4
                 self.figure_rga.ax.plot(dataset['time'] + timedelta(hours=time_delta), dataset['data'], label=f'{mass} amu')
         self.figure_rga.ax.grid(alpha=0.4)
         self.figure_rga.ax.xaxis.set_major_formatter(data_format)
