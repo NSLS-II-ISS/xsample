@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>2124</width>
-    <height>1255</height>
+    <width>2084</width>
+    <height>1233</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,8 +17,8 @@
    <widget class="QTabWidget" name="tabWidget">
     <property name="geometry">
      <rect>
-      <x>50</x>
-      <y>30</y>
+      <x>10</x>
+      <y>10</y>
       <width>2061</width>
       <height>1201</height>
      </rect>
@@ -1669,7 +1669,7 @@
             <string>fully open</string>
            </property>
            <property name="checked">
-            <bool>false</bool>
+            <bool>true</bool>
            </property>
           </widget>
          </item>
@@ -1680,7 +1680,7 @@
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>330</y>
+         <y>310</y>
          <width>631</width>
          <height>301</height>
         </rect>
@@ -2721,7 +2721,7 @@
        <widget class="QWidget" name="verticalLayoutWidget_13">
         <property name="geometry">
          <rect>
-          <x>510</x>
+          <x>500</x>
           <y>30</y>
           <width>102</width>
           <height>61</height>
@@ -2759,9 +2759,9 @@
        <widget class="QWidget" name="gridLayoutWidget_6">
         <property name="geometry">
          <rect>
-          <x>510</x>
+          <x>500</x>
           <y>230</y>
-          <width>110</width>
+          <width>111</width>
           <height>60</height>
          </rect>
         </property>
@@ -2826,7 +2826,7 @@
        <widget class="QWidget" name="verticalLayoutWidget_14">
         <property name="geometry">
          <rect>
-          <x>510</x>
+          <x>500</x>
           <y>100</y>
           <width>104</width>
           <height>61</height>
@@ -2865,7 +2865,7 @@
       <widget class="QGroupBox" name="groupBox_5">
        <property name="geometry">
         <rect>
-         <x>10</x>
+         <x>0</x>
          <y>780</y>
          <width>751</width>
          <height>351</height>
@@ -2877,8 +2877,8 @@
        <widget class="QPushButton" name="push_visualize_program">
         <property name="geometry">
          <rect>
-          <x>350</x>
-          <y>20</y>
+          <x>250</x>
+          <y>40</y>
           <width>141</width>
           <height>31</height>
          </rect>
@@ -2890,8 +2890,8 @@
        <widget class="QPushButton" name="push_start_program">
         <property name="geometry">
          <rect>
-          <x>350</x>
-          <y>140</y>
+          <x>250</x>
+          <y>160</y>
           <width>141</width>
           <height>31</height>
          </rect>
@@ -2903,8 +2903,8 @@
        <widget class="QPushButton" name="push_clear_program">
         <property name="geometry">
          <rect>
-          <x>350</x>
-          <y>60</y>
+          <x>250</x>
+          <y>80</y>
           <width>141</width>
           <height>31</height>
          </rect>
@@ -2916,8 +2916,8 @@
        <widget class="QComboBox" name="comboBox_sample_envs">
         <property name="geometry">
          <rect>
-          <x>520</x>
-          <y>50</y>
+          <x>420</x>
+          <y>70</y>
           <width>211</width>
           <height>31</height>
          </rect>
@@ -2926,8 +2926,8 @@
        <widget class="QWidget" name="gridLayoutWidget_3">
         <property name="geometry">
          <rect>
-          <x>510</x>
-          <y>100</y>
+          <x>410</x>
+          <y>120</y>
           <width>225</width>
           <height>152</height>
          </rect>
@@ -3030,8 +3030,8 @@
        <widget class="QPushButton" name="push_pause_program">
         <property name="geometry">
          <rect>
-          <x>350</x>
-          <y>180</y>
+          <x>250</x>
+          <y>200</y>
           <width>141</width>
           <height>31</height>
          </rect>
@@ -3048,7 +3048,7 @@
          <rect>
           <x>10</x>
           <y>30</y>
-          <width>311</width>
+          <width>221</width>
           <height>311</height>
          </rect>
         </property>
@@ -3056,8 +3056,8 @@
        <widget class="QLabel" name="label_7">
         <property name="geometry">
          <rect>
-          <x>520</x>
-          <y>20</y>
+          <x>420</x>
+          <y>40</y>
           <width>211</width>
           <height>20</height>
          </rect>
@@ -3069,8 +3069,8 @@
        <widget class="QPushButton" name="push_stop_program">
         <property name="geometry">
          <rect>
-          <x>350</x>
-          <y>220</y>
+          <x>250</x>
+          <y>240</y>
           <width>141</width>
           <height>31</height>
          </rect>
@@ -3084,10 +3084,10 @@
      <widget class="QWidget" name="verticalLayoutWidget_5">
       <property name="geometry">
        <rect>
-        <x>780</x>
-        <y>740</y>
-        <width>951</width>
-        <height>401</height>
+        <x>680</x>
+        <y>750</y>
+        <width>1051</width>
+        <height>361</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="layout_temp"/>
@@ -3095,32 +3095,21 @@
      <widget class="QWidget" name="verticalLayoutWidget_2">
       <property name="geometry">
        <rect>
-        <x>780</x>
+        <x>680</x>
         <y>380</y>
-        <width>951</width>
-        <height>351</height>
+        <width>1051</width>
+        <height>361</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="layout_mfc"/>
      </widget>
-     <widget class="QWidget" name="verticalLayoutWidget">
-      <property name="geometry">
-       <rect>
-        <x>780</x>
-        <y>10</y>
-        <width>951</width>
-        <height>361</height>
-       </rect>
-      </property>
-      <layout class="QVBoxLayout" name="layout_rga"/>
-     </widget>
      <widget class="QCheckBox" name="checkBox_update">
       <property name="geometry">
        <rect>
-        <x>1780</x>
-        <y>10</y>
-        <width>111</width>
-        <height>31</height>
+        <x>1740</x>
+        <y>20</y>
+        <width>81</width>
+        <height>21</height>
        </rect>
       </property>
       <property name="text">
@@ -3133,8 +3122,8 @@
      <widget class="QDoubleSpinBox" name="doubleSpinBox_timewindow">
       <property name="geometry">
        <rect>
-        <x>1880</x>
-        <y>60</y>
+        <x>1920</x>
+        <y>20</y>
         <width>62</width>
         <height>22</height>
        </rect>
@@ -3149,8 +3138,8 @@
      <widget class="QLabel" name="label_5">
       <property name="geometry">
        <rect>
-        <x>1790</x>
-        <y>60</y>
+        <x>1830</x>
+        <y>20</y>
         <width>81</width>
         <height>21</height>
        </rect>
@@ -3162,8 +3151,8 @@
      <widget class="QWidget" name="horizontalLayoutWidget">
       <property name="geometry">
        <rect>
-        <x>1780</x>
-        <y>120</y>
+        <x>1760</x>
+        <y>90</y>
         <width>247</width>
         <height>261</height>
        </rect>
@@ -3521,8 +3510,8 @@
      <widget class="QLabel" name="label_6">
       <property name="geometry">
        <rect>
-        <x>1950</x>
-        <y>60</y>
+        <x>1990</x>
+        <y>20</y>
         <width>81</width>
         <height>21</height>
        </rect>
@@ -3535,14 +3524,361 @@
       <property name="geometry">
        <rect>
         <x>1890</x>
-        <y>1090</y>
-        <width>100</width>
+        <y>1110</y>
+        <width>151</width>
         <height>36</height>
        </rect>
       </property>
       <property name="text">
-       <string>Reset</string>
+       <string>Reset poratble cart</string>
       </property>
+     </widget>
+     <widget class="QWidget" name="horizontalLayoutWidget_3">
+      <property name="geometry">
+       <rect>
+        <x>1760</x>
+        <y>380</y>
+        <width>241</width>
+        <height>240</height>
+       </rect>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout">
+         <item>
+          <widget class="QLabel" name="label_8">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>21</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Channel 1</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="checkBox_ch1_mfc1">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>21</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>MFC 1</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="checkBox_ch1_mfc2">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>21</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>MFC 2</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="checkBox_ch1_mfc3">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>21</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>MFC 3</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="checkBox_ch1_mfc4">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>21</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>MFC 4</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="checkBox_ch1_mfc5">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>21</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>MFC 5</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="checkBox_ch1_mfc6">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>21</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>MFC 6</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="checkBox_ch1_mfc7">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>21</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>MFC 7</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="checkBox_ch1_mfc8">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>21</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>MFC 8</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_4">
+         <item>
+          <widget class="QLabel" name="label_20">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>21</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Channel 2</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="checkBox_ch2_mfc1">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>21</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>MFC 1</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="checkBox_ch2_mfc2">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>21</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>MFC 2</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="checkBox_ch2_mfc3">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>21</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>MFC 3</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="checkBox_ch2_mfc4">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>21</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>MFC 4</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="checkBox_ch2_mfc5">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>21</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>MFC 5</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="checkBox_ch2_mfc6">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>21</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>MFC 6</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="checkBox_ch2_mfc7">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>21</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>MFC 7</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="checkBox_ch2_mfc8">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>21</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>MFC 8</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="verticalLayoutWidget_10">
+      <property name="geometry">
+       <rect>
+        <x>1760</x>
+        <y>630</y>
+        <width>160</width>
+        <height>103</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_5">
+       <item>
+        <widget class="QLabel" name="label_21">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>21</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Portable cart</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_ch1_mfc1_2">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>21</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>MFC Methane</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_ch1_mfc1_3">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>21</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>MFC CO</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_ch1_mfc1_4">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>21</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>MFC Hydrogen</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="verticalLayoutWidget">
+      <property name="geometry">
+       <rect>
+        <x>680</x>
+        <y>10</y>
+        <width>1051</width>
+        <height>361</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="layout_rga"/>
      </widget>
     </widget>
     <widget class="QWidget" name="tab_2">
