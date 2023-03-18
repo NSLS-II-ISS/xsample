@@ -3829,7 +3829,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="checkBox_ch1_mfc1_2">
+        <widget class="QCheckBox" name="checkBox_ch3_mfc1">
          <property name="maximumSize">
           <size>
            <width>16777215</width>
@@ -3842,7 +3842,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="checkBox_ch1_mfc1_3">
+        <widget class="QCheckBox" name="checkBox_ch3_mfc2">
          <property name="maximumSize">
           <size>
            <width>16777215</width>
@@ -3855,7 +3855,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="checkBox_ch1_mfc1_4">
+        <widget class="QCheckBox" name="checkBox_ch3_mfc3">
          <property name="maximumSize">
           <size>
            <width>16777215</width>

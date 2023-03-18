@@ -434,23 +434,39 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
         update_figure([self.figure_mfc.ax], self.toolbar_mfc, self.canvas_mfc)
 
-        for channels_key in ['1', '2']:
-            for i in range(1, 9):
-                dataset_mfc = df['ghs_ch'+channels_key+'_mfc'+str(i)+'_rb']
-                indx_mfc = i
+        for channels_key in ['1', '2', '3']:
 
-                if getattr(self, f'checkBox_ch{channels_key}_mfc{indx_mfc}').isChecked():
-                    # put -5 in the winter, -4 in the summer
-                    time_delta = -4
-                    self.figure_mfc.ax.plot(dataset_mfc['time'] + timedelta(hours=time_delta), dataset_mfc['data'], label=f'ch{channels_key} mfc{indx_mfc}')
-            self.figure_mfc.ax.grid(alpha=0.4)
-            self.figure_mfc.ax.xaxis.set_major_formatter(data_format)
-            self.figure_mfc.ax.set_xlim(_xlim)
-            self.figure_mfc.ax.autoscale_view(tight=True)
-            self.figure_mfc.ax.set_yscale('linear')
-            self.figure_mfc.tight_layout()
-            self.figure_mfc.ax.legend(loc=6)
-            self.canvas_mfc.draw_idle()
+            if channels_key == '3':
+                __gas_cart = ['CH4', 'CO', 'H2']
+                for j in range(1, 4):
+                    dataset_mfc_cart = df['mfc_cart_' + __gas_cart[j - 1] + '_rb']
+                    indx_gc = j
+                    if getattr(self, f'checkBox_ch3_mfc{indx_gc}').isChecked():
+                        # put -5 in the winter, -4 in the summer
+                        time_delta = -4
+                        self.figure_mfc.ax.plot(dataset_mfc_cart['time'] + timedelta(hours=time_delta),
+                                                dataset_mfc_cart['data'],
+                                                label=f'Gas cart {__gas_cart[j - 1]}')
+
+            else:
+                for i in range(1, 9):
+                    dataset_mfc = df['ghs_ch'+channels_key+'_mfc'+str(i)+'_rb']
+                    indx_mfc = i
+
+                    if getattr(self, f'checkBox_ch{channels_key}_mfc{indx_mfc}').isChecked():
+                        # put -5 in the winter, -4 in the summer
+                        time_delta = -4
+                        self.figure_mfc.ax.plot(dataset_mfc['time'] + timedelta(hours=time_delta), dataset_mfc['data'],
+                                                label=f'ch{channels_key} mfc{indx_mfc}')
+
+        self.figure_mfc.ax.grid(alpha=0.4)
+        self.figure_mfc.ax.xaxis.set_major_formatter(data_format)
+        self.figure_mfc.ax.set_xlim(_xlim)
+        self.figure_mfc.ax.autoscale_view(tight=True)
+        self.figure_mfc.ax.set_yscale('linear')
+        self.figure_mfc.tight_layout()
+        self.figure_mfc.ax.legend(loc=6)
+        self.canvas_mfc.draw_idle()
 
         update_figure([self.figure_temp.ax], self.toolbar_temp, self.canvas_temp)
 
