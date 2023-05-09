@@ -12,9 +12,6 @@ import pandas as pd
 import pkg_resources
 from PyQt5 import QtGui, QtWidgets, QtCore, uic
 from PyQt5.Qt import QSplashScreen, QObject
-from PyQt5.QtCore import QSettings, QThread, pyqtSignal, QTimer, QDateTime
-from PyQt5.QtGui import QPixmap
-from PyQt5.Qt import Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, \
     NavigationToolbar2QT as NavigationToolbar
 import bluesky.plan_stubs as bps
@@ -32,7 +29,6 @@ ui_path = pkg_resources.resource_filename('iss_xsample', 'ui/xsample_new.ui')
 
 from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
-
 
 # gui_form = uic.loadUiType(ui_path)[0]  # Load the UI
 
@@ -66,6 +62,9 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
         self.RE = RE
         self.archiver = archiver
+
+        self.num_steps = 30
+        self.step_priority = np.zeros(self.num_steps)
 
         self.push_visualize_program.clicked.connect(self.visualize_program)
         self.push_clear_program.clicked.connect(self.clear_program)
@@ -175,25 +174,25 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.timer_sample_env_status.start()
 
 
-        self._gases = {}
-        self.__ch1 = ["He/N<sub>2</sub>/Ar", "H<sub>2</sub>/NH<sub>3</sub>",
-                                 "CH<sub>4</sub>/C<sub>2</sub>H<sub>4</sub>", "NO<sub>x</sub>/Future",
-                                 "AsH<sub>3</sub>/PH<sub>3</sub>", "O<sub>2</sub>", "CO", "CO<sub>2</sub>"]
-        self.__ch2 = ["He/N<sub>2</sub>/Ar", "H<sub>2</sub>/NH<sub>3</sub>",
-                                 "CH<sub>4</sub>/C<sub>2</sub>H<sub>4</sub>", "NO<sub>x</sub>/Future",
-                                 "AsH<sub>3</sub>/PH<sub>3</sub>"]
-        self.__ch3 = ["Methane", "CO", "H<sub>2</sub>"]
-
-        self._gases['ch1'] = dict(zip(np.arange(1,8,1), self.__ch1))
-        self._gases['ch2'] = dict(zip(np.arange(1,6,1), self.__ch2))
-        self._gases['ch3'] = dict(zip(np.arange(1,4,1), self.__ch3))
-
-        for i in range(1,4):
-            for gas in self._gases['ch'+str(i)].values():
-                getattr(self, f"verticalLayout_gases_ch{i}").addWidget(GasType(self.gas_cart,
-                                                                                self.ghs,
-                                                                                # self.archiver,
-                                                                                gas_name=gas))
+             # self._gases = {}
+        # self.__ch1 = ["He/N<sub>2</sub>/Ar", "H<sub>2</sub>/NH<sub>3</sub>",
+        #                          "CH<sub>4</sub>/C<sub>2</sub>H<sub>4</sub>", "NO<sub>x</sub>/Future",
+        #                          "AsH<sub>3</sub>/PH<sub>3</sub>", "O<sub>2</sub>", "CO", "CO<sub>2</sub>"]
+        # self.__ch2 = ["He/N<sub>2</sub>/Ar", "H<sub>2</sub>/NH<sub>3</sub>",
+        #                          "CH<sub>4</sub>/C<sub>2</sub>H<sub>4</sub>", "NO<sub>x</sub>/Future",
+        #                          "AsH<sub>3</sub>/PH<sub>3</sub>"]
+        # self.__ch3 = ["Methane", "CO", "H<sub>2</sub>"]
+        #
+        # self._gases['ch1'] = dict(zip(np.arange(1,8,1), self.__ch1))
+        # self._gases['ch2'] = dict(zip(np.arange(1,6,1), self.__ch2))
+        # self._gases['ch3'] = dict(zip(np.arange(1,4,1), self.__ch3))
+        #
+        # for i in range(1,4):
+        #     for gas in self._gases['ch'+str(i)].values():
+        #         getattr(self, f"verticalLayout_gases_ch{i}").addWidget(GasType(self.gas_cart,
+        #                                                                         self.ghs,
+        #                                                                         # self.archiver,
+        #                                                                         gas_name=gas))
 
        # self.pushButton_add_gases.clicked.connect(self.update_gas_list)
 
@@ -262,11 +261,78 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
     def init_table_widget(self):
         # TODO: make the table length correspond to the max length acceptable by the sample environment
-        self.tableWidget_program.setColumnCount(2)
-        self.tableWidget_program.setRowCount(50)
-        setpoint_name = f'{self.current_sample_env.pv_name}\nsetpoint ({self.current_sample_env.pv_units})'
-        self.tableWidget_program.setHorizontalHeaderLabels(('Time intervals (min)', setpoint_name))
 
+        self.tableWidget_program.setColumnCount(self.num_steps)
+        self.tableWidget_program.setRowCount(8)
+
+        self.tableWidget_program.setVerticalHeaderLabels(('Temperature, C°' , 'Ramp rate, C°/min', 'Duration, min',
+                                                          'Flow rate 1, sccm',  'Flow rate 2, sccm',
+                                                          'Flow rate 3, sccm',  'Flow rate 4, sccm',
+                                                         'Flow rate 5, sccm'
+                                                         ))
+
+        combo_box_options= ['None', 'Methane', 'CO', 'Hydrogen', 'Carbon dioxide', 'Oxygen','Helium','Nitrogen', 'Argon']
+        for indx in range(5):
+            combo = getattr(self, f'comboBox_gas{indx+1}')
+            for option in combo_box_options:
+                combo.addItem(option)
+
+        self.tableWidget_program.cellChanged.connect(self.handle_program_changes)
+
+    def handle_program_changes(self, row, column):
+        def ramp_driven(column, t_range):
+            ramp_rate = int(self.tableWidget_program.item(1, column).text())
+            duration = t_range / ramp_rate
+            item = QtWidgets.QTableWidgetItem(str(duration))
+            item.setForeground(QtGui.QBrush(QtGui.QColor(78, 190, 181)))
+            self.tableWidget_program.setItem(2, column, item)
+            self.tableWidget_program.item(1, column).setForeground(QtGui.QBrush(QtGui.QColor(0, 0, 0)))
+            self.step_priority[column] = 1  # one is priority on ramp
+
+        def duration_driven(column, t_range):
+            duration = int(self.tableWidget_program.item(2, column).text())
+            ramp = t_range / duration
+            item = QtWidgets.QTableWidgetItem(str(ramp))
+            item.setForeground(QtGui.QBrush(QtGui.QColor(78, 190, 181)))
+            self.tableWidget_program.setItem(1, column, item)
+            self.tableWidget_program.item(2, column).setForeground(QtGui.QBrush(QtGui.QColor(0, 0, 0)))
+            self.step_priority[column] = 2  # one is priority on duration
+
+        self.tableWidget_program.cellChanged.disconnect(self.handle_program_changes)
+        sample_env = self.current_sample_env
+        print(row, column)
+        temperature = None
+        previous_temperature = None
+        if column > 0:
+            if self.tableWidget_program.item(0, column - 1):
+                if self.tableWidget_program.item(0, column - 1).text()!= '':
+                    previous_temperature = int(self.tableWidget_program.item(0, column - 1).text())
+            if self.tableWidget_program.item(0, column):
+                temperature = int(self.tableWidget_program.item(0, column).text())
+        else:
+            previous_temperature = np.round(sample_env.pv.get())
+            previous_temperature = 25
+            if self.tableWidget_program.item(0, column):
+                if self.tableWidget_program.item(0, column).text() != '':
+                    temperature = int(self.tableWidget_program.item(0, column).text())
+        if temperature and previous_temperature:
+            t_range = temperature - previous_temperature
+            if row == 0:
+                if self.tableWidget_program.item(1, column):
+                    ramp_driven(column,t_range)
+                elif self.tableWidget_program.item(2, column):
+                    duration_driven(column,t_range)
+            if row == 1:
+                if self.tableWidget_program.item(1, column): #ramp
+                    ramp_driven(column, t_range)
+            elif row ==2:
+                if self.tableWidget_program.item(2, column): #duration
+                    duration_driven(column, t_range)
+
+
+
+
+        self.tableWidget_program.cellChanged.connect(self.handle_program_changes)
     def update_ghs_status(self):
         # update card MFC setpoints and readbacks
         for indx in range(3):
@@ -430,7 +496,6 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.figure_rga.tight_layout()
         self.figure_rga.ax.legend(loc=6)
         self.canvas_rga.draw_idle()
-
 
         update_figure([self.figure_mfc.ax], self.toolbar_mfc, self.canvas_mfc)
 
@@ -651,9 +716,6 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         else:
             self.RE(bps.mv(self.gas_cart[ch_num]['vlv'].close,1))
 
-
-
-
     def select_gases(self):
         sender = QObject()
         sender_object = sender.sender()
@@ -700,11 +762,6 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         indx_ch, indx_mnf = re.findall(r'\d+', sender_name)
         value = sender_object.value()
         self.ghs['channels'][indx_ch][f'mfc{indx_mnf}_sp'].set(value)
-
-
-
-
-
 
 
 if __name__ == '__main__':
