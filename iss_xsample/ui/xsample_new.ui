@@ -345,7 +345,7 @@
       <x>10</x>
       <y>30</y>
       <width>661</width>
-      <height>1191</height>
+      <height>1121</height>
      </rect>
     </property>
     <property name="title">
@@ -3860,45 +3860,195 @@
      <string>Clear program</string>
     </property>
    </widget>
-   <widget class="QWidget" name="verticalLayoutWidget_3">
-    <property name="geometry">
-     <rect>
-      <x>550</x>
-      <y>1250</y>
-      <width>131</width>
-      <height>151</height>
-     </rect>
-    </property>
-    <layout class="QVBoxLayout" name="verticalLayout_6">
-     <item>
-      <widget class="QComboBox" name="comboBox_gas1"/>
-     </item>
-     <item>
-      <widget class="QComboBox" name="comboBox_gas2"/>
-     </item>
-     <item>
-      <widget class="QComboBox" name="comboBox_gas3"/>
-     </item>
-     <item>
-      <widget class="QComboBox" name="comboBox_gas4"/>
-     </item>
-     <item>
-      <widget class="QComboBox" name="comboBox_gas5"/>
-     </item>
-    </layout>
-   </widget>
-   <widget class="QPushButton" name="pushButton_addstep">
+   <widget class="QWidget" name="horizontalLayoutWidget_4">
     <property name="geometry">
      <rect>
       <x>2160</x>
       <y>1390</y>
-      <width>141</width>
+      <width>204</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <item>
+      <widget class="QLabel" name="label_22">
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Add steps</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSpinBox" name="spinBox_steps">
+       <property name="minimum">
+        <number>1</number>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QPushButton" name="pushButton_visu_gas_program">
+    <property name="geometry">
+     <rect>
+      <x>1910</x>
+      <y>1430</y>
+      <width>211</width>
       <height>31</height>
      </rect>
     </property>
     <property name="text">
-     <string>Add Step</string>
+     <string>Visualize gas program</string>
     </property>
+   </widget>
+   <widget class="QRadioButton" name="radioButton_13">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>61</width>
+      <height>26</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>3</string>
+    </property>
+   </widget>
+   <widget class="QSplitter" name="splitter">
+    <property name="geometry">
+     <rect>
+      <x>420</x>
+      <y>1240</y>
+      <width>264</width>
+      <height>161</height>
+     </rect>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Vertical</enum>
+    </property>
+    <widget class="QWidget" name="horizontalLayoutWidget_5">
+     <layout class="QHBoxLayout" name="horizontalLayout_5">
+      <item>
+       <widget class="QRadioButton" name="radioButton_f1_1">
+        <property name="text">
+         <string>1</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="radioButton_f1_2">
+        <property name="text">
+         <string>2</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="comboBox_gas1"/>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QWidget" name="horizontalLayoutWidget_6">
+     <layout class="QHBoxLayout" name="horizontalLayout_6">
+      <item>
+       <widget class="QRadioButton" name="radioButton_f2_1">
+        <property name="text">
+         <string>1</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="radioButton_f2_2">
+        <property name="text">
+         <string>2</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="comboBox_gas2"/>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QWidget" name="horizontalLayoutWidget_7">
+     <layout class="QHBoxLayout" name="horizontalLayout_7">
+      <item>
+       <widget class="QRadioButton" name="radioButton_f3_1">
+        <property name="text">
+         <string>1</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="radioButton_f3_2">
+        <property name="text">
+         <string>2</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="comboBox_gas3"/>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QWidget" name="horizontalLayoutWidget_8">
+     <layout class="QHBoxLayout" name="horizontalLayout_8">
+      <item>
+       <widget class="QRadioButton" name="radioButton_f4_1">
+        <property name="text">
+         <string>1</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="radioButton_f4_2">
+        <property name="text">
+         <string>2</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="comboBox_gas4"/>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QWidget" name="horizontalLayoutWidget_9">
+     <layout class="QHBoxLayout" name="horizontalLayout_9">
+      <item>
+       <widget class="QRadioButton" name="radioButton_f5_1">
+        <property name="text">
+         <string>1</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="radioButton_f5_2">
+        <property name="text">
+         <string>2</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="comboBox_gas5"/>
+      </item>
+     </layout>
+    </widget>
    </widget>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>

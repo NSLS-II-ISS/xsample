@@ -174,6 +174,21 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.timer_sample_env_status.start()
 
 
+        ############### Gas Program #####################
+
+        self.spinBox_steps.valueChanged.connect(self.manage_number_of_steps)
+        self.tableWidget_program.cellChanged.connect(self.handle_program_changes)
+        self.pushButton_visu_gas_program.clicked.connect(self.manage_duration_n_rate)
+        self.gas_program_steps = {}
+
+
+
+        ############### Gas Program #####################
+
+
+
+
+
              # self._gases = {}
         # self.__ch1 = ["He/N<sub>2</sub>/Ar", "H<sub>2</sub>/NH<sub>3</sub>",
         #                          "CH<sub>4</sub>/C<sub>2</sub>H<sub>4</sub>", "NO<sub>x</sub>/Future",
@@ -258,81 +273,213 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         _current_key = self.comboBox_sample_envs.currentText()
         self.current_sample_env = self.sample_envs_dict[_current_key]
         self.init_table_widget()
+        # self.manage_steps()
+
+    ################## Gas program ###################
+
 
     def init_table_widget(self):
-        # TODO: make the table length correspond to the max length acceptable by the sample environment
+        self.manage_number_of_steps()
+        self.tableWidget_program.setVerticalHeaderLabels(('Temperature, C°', 'Duration, min','Ramp rate, C°/min',
+                                                          'Flow rate 1, sccm', 'Flow rate 2, sccm',
+                                                          'Flow rate 3, sccm', 'Flow rate 4, sccm',
+                                                          'Flow rate 5, sccm'
+                                                          ))
 
-        self.tableWidget_program.setColumnCount(self.num_steps)
-        self.tableWidget_program.setRowCount(8)
-
-        self.tableWidget_program.setVerticalHeaderLabels(('Temperature, C°' , 'Ramp rate, C°/min', 'Duration, min',
-                                                          'Flow rate 1, sccm',  'Flow rate 2, sccm',
-                                                          'Flow rate 3, sccm',  'Flow rate 4, sccm',
-                                                         'Flow rate 5, sccm'
-                                                         ))
-
-        combo_box_options= ['None', 'Methane', 'CO', 'Hydrogen', 'Carbon dioxide', 'Oxygen','Helium','Nitrogen', 'Argon']
+        combo_box_options = ['None',
+                             'CH4',
+                             'CO',
+                             'H2',
+                             'He',
+                             'N2',
+                             'Ar',
+                             'O2',
+                             'CO-ch',
+                             'CO2']
         for indx in range(5):
-            combo = getattr(self, f'comboBox_gas{indx+1}')
+            combo = getattr(self, f'comboBox_gas{indx + 1}')
             for option in combo_box_options:
                 combo.addItem(option)
 
-        self.tableWidget_program.cellChanged.connect(self.handle_program_changes)
 
-    def handle_program_changes(self, row, column):
-        def ramp_driven(column, t_range):
-            ramp_rate = int(self.tableWidget_program.item(1, column).text())
-            duration = t_range / ramp_rate
-            item = QtWidgets.QTableWidgetItem(str(duration))
-            item.setForeground(QtGui.QBrush(QtGui.QColor(78, 190, 181)))
-            self.tableWidget_program.setItem(2, column, item)
-            self.tableWidget_program.item(1, column).setForeground(QtGui.QBrush(QtGui.QColor(0, 0, 0)))
-            self.step_priority[column] = 1  # one is priority on ramp
-
-        def duration_driven(column, t_range):
-            duration = int(self.tableWidget_program.item(2, column).text())
-            ramp = t_range / duration
-            item = QtWidgets.QTableWidgetItem(str(ramp))
-            item.setForeground(QtGui.QBrush(QtGui.QColor(78, 190, 181)))
-            self.tableWidget_program.setItem(1, column, item)
-            self.tableWidget_program.item(2, column).setForeground(QtGui.QBrush(QtGui.QColor(0, 0, 0)))
-            self.step_priority[column] = 2  # one is priority on duration
-
-        self.tableWidget_program.cellChanged.disconnect(self.handle_program_changes)
-        sample_env = self.current_sample_env
-        print(row, column)
-        temperature = None
-        previous_temperature = None
-        if column > 0:
-            if self.tableWidget_program.item(0, column - 1):
-                if self.tableWidget_program.item(0, column - 1).text()!= '':
-                    previous_temperature = int(self.tableWidget_program.item(0, column - 1).text())
-            if self.tableWidget_program.item(0, column):
-                temperature = int(self.tableWidget_program.item(0, column).text())
-        else:
-            previous_temperature = np.round(sample_env.pv.get())
-            previous_temperature = 25
-            if self.tableWidget_program.item(0, column):
-                if self.tableWidget_program.item(0, column).text() != '':
-                    temperature = int(self.tableWidget_program.item(0, column).text())
-        if temperature and previous_temperature:
-            t_range = temperature - previous_temperature
-            if row == 0:
-                if self.tableWidget_program.item(1, column):
-                    ramp_driven(column,t_range)
-                elif self.tableWidget_program.item(2, column):
-                    duration_driven(column,t_range)
-            if row == 1:
-                if self.tableWidget_program.item(1, column): #ramp
-                    ramp_driven(column, t_range)
-            elif row ==2:
-                if self.tableWidget_program.item(2, column): #duration
-                    duration_driven(column, t_range)
+    def manage_number_of_steps(self):
+        no_of_steps = self.spinBox_steps.value()
+        self.tableWidget_program.setColumnCount(no_of_steps)
+        self.tableWidget_program.setRowCount(8)
+        self.handle_program_changes()
 
 
+    def handle_program_changes(self):
+        self.gas_program_steps = {}
+        no_of_columns = self.tableWidget_program.columnCount()
+
+        _tmp = {'temp' : None,
+                'duration' : None,
+                'rate' : None,
+                'flow_1': None,
+                'flow_2' : None,
+                'flow_3' : None,
+                'flow_4' : None,
+                'flow_5' : None,
+                }
+        for col in range(no_of_columns):
+
+            def check_status_of_radioButton(channel=None):
+                if getattr(self, 'radioButton_f' + str(channel) + '_1').isChecked():
+                    return 1
+                else:
+                    return 2
 
 
-        self.tableWidget_program.cellChanged.connect(self.handle_program_changes)
+            self.gas_program_steps[col] = {}
+
+            for i, key in enumerate(['temp', 'duration', 'rate']):
+                _tmp[key] = self.tableWidget_program.item(i,col)
+                if _tmp[key]:
+                    self.gas_program_steps[col][key] = float(_tmp[key].text())
+                else:
+                    self.gas_program_steps[col][key] = None
+
+
+            for j, gas_key in enumerate(['flow_1', 'flow_2', 'flow_3', 'flow_4', 'flow_5'], start=3):
+                _tmp[gas_key] = self.tableWidget_program.item(j,col)
+
+                if _tmp[gas_key]:
+                    self.gas_program_steps[col][gas_key] = {}
+
+                    ch = check_status_of_radioButton(j-2)
+                    self.gas_program_steps[col][gas_key]['channel'] = ch
+                    self.gas_program_steps[col][gas_key]['name'] = getattr(self, 'comboBox_gas' + str(j-2)).currentText()
+                    self.gas_program_steps[col][gas_key]['flow'] = float(_tmp[gas_key].text())
+                else:
+                    self.gas_program_steps[col][gas_key] = None
+
+    def manage_duration_n_rate(self):
+        previous_temp =  25
+        for i, key in enumerate(self.gas_program_steps.keys()):
+            if self.gas_program_steps[key]['temp']:
+
+
+                if self.gas_program_steps[key]['duration']:
+                    self.gas_program_steps[key]['rate'] = abs((self.gas_program_steps[key]['temp'] - previous_temp)/self.gas_program_steps[key]['duration'])
+                    item = QtWidgets.QTableWidgetItem(str(self.gas_program_steps[key]['rate']))
+                    self.tableWidget_program.setItem(2,i, item)
+                    previous_temp = self.gas_program_steps[key]['temp']
+                    continue
+                elif self.gas_program_steps[key]['rate']:
+                    self.gas_program_steps[key]['duration'] = self.gas_program_steps[key]['temp']/self.gas_program_steps[key]['rate']
+                    item = QtWidgets.QTableWidgetItem(str(self.gas_program_steps[key]['duration']))
+                    self.tableWidget_program.setItem(1, i, item)
+                    previous_temp = self.gas_program_steps[key]['temp']
+        self.visualize_temperature_program()
+
+
+
+    def read_temperature_program_data(self):
+        times = []
+        sps = []
+
+        for i, key in enumerate(self.gas_program_steps):
+            if self.gas_program_steps[i]['temp'] and self.gas_program_steps[i]['duration']:
+                times.append(self.gas_program_steps[i]['duration'])
+                sps.append(self.gas_program_steps[i]['temp'])
+
+        times = np.cumsum(times)
+        times = np.hstack((0, np.array(times))) * 60
+        sps = np.hstack((self.current_sample_env.current_pv_reading(), np.array(sps)))
+        print('The parsed program:')
+        for _time, _sp in zip(times, sps):
+            print('time', _time, '\ttemperature', _sp)
+        self.pid_program = {'times': times, 'setpoints': sps}
+
+    def visualize_temperature_program(self):
+        self.read_temperature_program_data()
+        self.plot_program_flag = True
+        self.program_plot_moving_flag = True
+        self.update_plot_program_data()
+        self.update_status()
+
+
+
+
+
+
+    ################## Gas program ###################
+
+    # def init_table_widget(self):
+    #     # TODO: make the table length correspond to the max length acceptable by the sample environment
+    #
+    #     self.tableWidget_program.setColumnCount(self.num_steps)
+    #     self.tableWidget_program.setRowCount(8)
+    #
+    #     self.tableWidget_program.setVerticalHeaderLabels(('Temperature, C°' , 'Ramp rate, C°/min', 'Duration, min',
+    #                                                       'Flow rate 1, sccm',  'Flow rate 2, sccm',
+    #                                                       'Flow rate 3, sccm',  'Flow rate 4, sccm',
+    #                                                      'Flow rate 5, sccm'
+    #                                                      ))
+    #
+    #     combo_box_options= ['None', 'Methane', 'CO', 'Hydrogen', 'Carbon dioxide', 'Oxygen','Helium','Nitrogen', 'Argon']
+    #     for indx in range(5):
+    #         combo = getattr(self, f'comboBox_gas{indx+1}')
+    #         for option in combo_box_options:
+    #             combo.addItem(option)
+    #
+    #     self.tableWidget_program.cellChanged.connect(self.handle_program_changes)
+    #
+    # def handle_program_changes(self, row, column):
+    #     def ramp_driven(column, t_range):
+    #         ramp_rate = int(self.tableWidget_program.item(1, column).text())
+    #         duration = t_range / ramp_rate
+    #         item = QtWidgets.QTableWidgetItem(str(duration))
+    #         item.setForeground(QtGui.QBrush(QtGui.QColor(78, 190, 181)))
+    #         self.tableWidget_program.setItem(2, column, item)
+    #         self.tableWidget_program.item(1, column).setForeground(QtGui.QBrush(QtGui.QColor(0, 0, 0)))
+    #         self.step_priority[column] = 1  # one is priority on ramp
+    #
+    #     def duration_driven(column, t_range):
+    #         duration = int(self.tableWidget_program.item(2, column).text())
+    #         ramp = t_range / duration
+    #         item = QtWidgets.QTableWidgetItem(str(ramp))
+    #         item.setForeground(QtGui.QBrush(QtGui.QColor(78, 190, 181)))
+    #         self.tableWidget_program.setItem(1, column, item)
+    #         self.tableWidget_program.item(2, column).setForeground(QtGui.QBrush(QtGui.QColor(0, 0, 0)))
+    #         self.step_priority[column] = 2  # one is priority on duration
+    #
+    #     self.tableWidget_program.cellChanged.disconnect(self.handle_program_changes)
+    #     sample_env = self.current_sample_env
+    #     print(row, column)
+    #     temperature = None
+    #     previous_temperature = None
+    #     if column > 0:
+    #         if self.tableWidget_program.item(0, column - 1):
+    #             if self.tableWidget_program.item(0, column - 1).text()!= '':
+    #                 previous_temperature = int(self.tableWidget_program.item(0, column - 1).text())
+    #         if self.tableWidget_program.item(0, column):
+    #             temperature = int(self.tableWidget_program.item(0, column).text())
+    #     else:
+    #         previous_temperature = np.round(sample_env.pv.get())
+    #         previous_temperature = 25
+    #         if self.tableWidget_program.item(0, column):
+    #             if self.tableWidget_program.item(0, column).text() != '':
+    #                 temperature = int(self.tableWidget_program.item(0, column).text())
+    #     if temperature and previous_temperature:
+    #         t_range = temperature - previous_temperature
+    #         if row == 0:
+    #             if self.tableWidget_program.item(1, column):
+    #                 ramp_driven(column,t_range)
+    #             elif self.tableWidget_program.item(2, column):
+    #                 duration_driven(column,t_range)
+    #         if row == 1:
+    #             if self.tableWidget_program.item(1, column): #ramp
+    #                 ramp_driven(column, t_range)
+    #         elif row ==2:
+    #             if self.tableWidget_program.item(2, column): #duration
+    #                 duration_driven(column, t_range)
+    #
+    #
+    #
+    #
+    #     self.tableWidget_program.cellChanged.connect(self.handle_program_changes)
     def update_ghs_status(self):
         # update card MFC setpoints and readbacks
         for indx in range(3):
@@ -762,6 +909,23 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         indx_ch, indx_mnf = re.findall(r'\d+', sender_name)
         value = sender_object.value()
         self.ghs['channels'][indx_ch][f'mfc{indx_mnf}_sp'].set(value)
+
+
+class TempRampManager(object):
+    def __init__(self, temperature=None, rate=None, duration=None):
+        self.temperature = temperature
+        self.rate = rate
+        self.duration = duration
+        self.set_rate_on_duration()
+        self.set_duration_on_rate()
+
+    def set_rate_on_duration(self):
+        if self.duration:
+            self.rate = (self.temperature - 25)/self.duration
+
+    def set_duration_on_rate(self):
+        if self.rate:
+            self.duration = self.temperature / self.rate
 
 
 if __name__ == '__main__':
