@@ -179,6 +179,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.spinBox_steps.valueChanged.connect(self.manage_number_of_steps)
         self.tableWidget_program.cellChanged.connect(self.handle_program_changes)
         self.pushButton_visu_gas_program.clicked.connect(self.manage_duration_n_rate)
+        self.pushButton_export.clicked.connect(self.file_save)
         self.gas_program_steps = {}
 
 
@@ -278,6 +279,69 @@ class XsampleGui(*uic.loadUiType(ui_path)):
     ################## Gas program ###################
 
 
+    def save_program_data(self):
+        _saveFile = QtWidgets.QAction("&Save File", self)
+        _saveFile.setShortcut('Ctrl+S')
+        _saveFile.setStatusTip('Save File')
+        _saveFile.triggered.connect(self.file_save)
+
+    def file_save(self):
+        path, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', '/home/xf08id/Documents/xsample_program/',
+                                                        '*.xlsx')
+        print(path)
+        print(str(path))
+
+        self.create_dataframe(path)
+
+
+        # with open(path+'.txt', 'w') as f:
+        #     f.write('test')
+
+
+
+        # file = open(name, 'w')
+        # text = self.textEdit.toPlainText()
+        # file.write(text)
+        # file.close()
+
+    def create_dataframe(self, path):
+        param  = ['temp', 'duration', 'rate', 'flow1', 'flow2', 'flow3', 'flow4', 'flow5']
+        _ch  = [0, 0, 0]
+        _gas = [0, 0, 0]
+        for i in range(1,6):
+            if self.gas_program_steps[0]['flow_' + str(i)]:
+                _ch.append(self.gas_program_steps[0]['flow_'+str(i)]['channel'])
+                _gas.append(self.gas_program_steps[0]['flow_'+str(i)]['name'])
+            else:
+                _ch.append(0)
+                _gas.append(None)
+
+        _df = pd.DataFrame()
+        _df['param'] = param
+        _df['channel'] = _ch
+        _df['gas'] = _gas
+
+        for i, key in enumerate(self.gas_program_steps.keys()):
+            _t = []
+            _t.append(self.gas_program_steps[key]['temp'])
+            _t.append(self.gas_program_steps[key]['duration'])
+            _t.append(self.gas_program_steps[key]['rate'])
+            for j in range(1,6):
+                if self.gas_program_steps[0]['flow_' + str(j)]:
+                    _t.append(self.gas_program_steps[0]['flow_'+str(j)]['flow'])
+                else:
+                    _t.append(None)
+            _df[i+1] = _t
+
+        _df.to_excel(path + '.xlsx')
+
+
+
+
+
+
+
+
     def init_table_widget(self):
         self.manage_number_of_steps()
         self.tableWidget_program.setVerticalHeaderLabels(('Temperature, C°', 'Duration, min','Ramp rate, C°/min',
@@ -359,15 +423,25 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         for i, key in enumerate(self.gas_program_steps.keys()):
             if self.gas_program_steps[key]['temp']:
 
+                print(f"previous_temp: {previous_temp}")
 
-                if self.gas_program_steps[key]['duration']:
+
+                if self.gas_program_steps[key]['duration'] and (self.gas_program_steps[key]['duration'] > 0):
                     self.gas_program_steps[key]['rate'] = abs((self.gas_program_steps[key]['temp'] - previous_temp)/self.gas_program_steps[key]['duration'])
+
+                    print(f"rate: {self.gas_program_steps[key]['rate']}")
+
                     item = QtWidgets.QTableWidgetItem(str(self.gas_program_steps[key]['rate']))
                     self.tableWidget_program.setItem(2,i, item)
                     previous_temp = self.gas_program_steps[key]['temp']
                     continue
-                elif self.gas_program_steps[key]['rate']:
-                    self.gas_program_steps[key]['duration'] = self.gas_program_steps[key]['temp']/self.gas_program_steps[key]['rate']
+                elif self.gas_program_steps[key]['rate'] and (self.gas_program_steps[key]['rate'] > 0):
+
+
+                    self.gas_program_steps[key]['duration'] = abs((self.gas_program_steps[key]['temp'] - previous_temp)/self.gas_program_steps[key]['rate'])
+
+                    print(f"duration: {self.gas_program_steps[key]['duration']}")
+
                     item = QtWidgets.QTableWidgetItem(str(self.gas_program_steps[key]['duration']))
                     self.tableWidget_program.setItem(1, i, item)
                     previous_temp = self.gas_program_steps[key]['temp']

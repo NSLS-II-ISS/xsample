@@ -3866,7 +3866,7 @@
       <x>2160</x>
       <y>1390</y>
       <width>204</width>
-      <height>31</height>
+      <height>44</height>
      </rect>
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -4049,6 +4049,32 @@
       </item>
      </layout>
     </widget>
+   </widget>
+   <widget class="QPushButton" name="pushButton_export">
+    <property name="geometry">
+     <rect>
+      <x>1590</x>
+      <y>1430</y>
+      <width>100</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Export</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_load">
+    <property name="geometry">
+     <rect>
+      <x>1700</x>
+      <y>1430</y>
+      <width>100</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Load</string>
+    </property>
    </widget>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
