@@ -180,6 +180,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.tableWidget_program.cellChanged.connect(self.handle_program_changes)
         self.pushButton_visu_gas_program.clicked.connect(self.manage_duration_n_rate)
         self.pushButton_export.clicked.connect(self.file_save)
+        self.pushButton_load.clicked.connect(self.load_gas_program)
         self.gas_program_steps = {}
 
 
@@ -293,17 +294,6 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
         self.create_dataframe(path)
 
-
-        # with open(path+'.txt', 'w') as f:
-        #     f.write('test')
-
-
-
-        # file = open(name, 'w')
-        # text = self.textEdit.toPlainText()
-        # file.write(text)
-        # file.close()
-
     def create_dataframe(self, path):
         param  = ['temp', 'duration', 'rate', 'flow1', 'flow2', 'flow3', 'flow4', 'flow5']
         _ch  = [0, 0, 0]
@@ -334,6 +324,16 @@ class XsampleGui(*uic.loadUiType(ui_path)):
             _df[i+1] = _t
 
         _df.to_excel(path + '.xlsx')
+
+    def load_gas_program(self):
+        path, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File', '/home/xf08id/Documents/xsample_program/',
+                                                        '*.xlsx')
+        self.create_table_using_xlsx_file(path)
+
+    def create_table_using_xlsx_file(self, path):
+        pass
+
+
 
 
 
