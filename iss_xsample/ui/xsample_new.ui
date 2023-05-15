@@ -3920,9 +3920,9 @@
    <widget class="QSplitter" name="splitter">
     <property name="geometry">
      <rect>
-      <x>420</x>
-      <y>1240</y>
-      <width>264</width>
+      <x>490</x>
+      <y>1250</y>
+      <width>191</width>
       <height>161</height>
      </rect>
     </property>
@@ -3933,6 +3933,12 @@
      <layout class="QHBoxLayout" name="horizontalLayout_5">
       <item>
        <widget class="QRadioButton" name="radioButton_f1_1">
+        <property name="maximumSize">
+         <size>
+          <width>50</width>
+          <height>16777215</height>
+         </size>
+        </property>
         <property name="text">
          <string>1</string>
         </property>
@@ -3943,13 +3949,26 @@
       </item>
       <item>
        <widget class="QRadioButton" name="radioButton_f1_2">
+        <property name="maximumSize">
+         <size>
+          <width>50</width>
+          <height>16777215</height>
+         </size>
+        </property>
         <property name="text">
          <string>2</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QComboBox" name="comboBox_gas1"/>
+       <widget class="QComboBox" name="comboBox_gas1">
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>16777215</height>
+         </size>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -3957,6 +3976,12 @@
      <layout class="QHBoxLayout" name="horizontalLayout_6">
       <item>
        <widget class="QRadioButton" name="radioButton_f2_1">
+        <property name="maximumSize">
+         <size>
+          <width>50</width>
+          <height>16777215</height>
+         </size>
+        </property>
         <property name="text">
          <string>1</string>
         </property>
@@ -3967,13 +3992,26 @@
       </item>
       <item>
        <widget class="QRadioButton" name="radioButton_f2_2">
+        <property name="maximumSize">
+         <size>
+          <width>50</width>
+          <height>16777215</height>
+         </size>
+        </property>
         <property name="text">
          <string>2</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QComboBox" name="comboBox_gas2"/>
+       <widget class="QComboBox" name="comboBox_gas2">
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>16777215</height>
+         </size>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -3981,6 +4019,12 @@
      <layout class="QHBoxLayout" name="horizontalLayout_7">
       <item>
        <widget class="QRadioButton" name="radioButton_f3_1">
+        <property name="maximumSize">
+         <size>
+          <width>50</width>
+          <height>16777215</height>
+         </size>
+        </property>
         <property name="text">
          <string>1</string>
         </property>
@@ -3988,6 +4032,12 @@
       </item>
       <item>
        <widget class="QRadioButton" name="radioButton_f3_2">
+        <property name="maximumSize">
+         <size>
+          <width>50</width>
+          <height>16777215</height>
+         </size>
+        </property>
         <property name="text">
          <string>2</string>
         </property>
@@ -3997,7 +4047,14 @@
        </widget>
       </item>
       <item>
-       <widget class="QComboBox" name="comboBox_gas3"/>
+       <widget class="QComboBox" name="comboBox_gas3">
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>16777215</height>
+         </size>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -4005,6 +4062,12 @@
      <layout class="QHBoxLayout" name="horizontalLayout_8">
       <item>
        <widget class="QRadioButton" name="radioButton_f4_1">
+        <property name="maximumSize">
+         <size>
+          <width>50</width>
+          <height>16777215</height>
+         </size>
+        </property>
         <property name="text">
          <string>1</string>
         </property>
@@ -4012,6 +4075,12 @@
       </item>
       <item>
        <widget class="QRadioButton" name="radioButton_f4_2">
+        <property name="maximumSize">
+         <size>
+          <width>50</width>
+          <height>16777215</height>
+         </size>
+        </property>
         <property name="text">
          <string>2</string>
         </property>
@@ -4021,7 +4090,14 @@
        </widget>
       </item>
       <item>
-       <widget class="QComboBox" name="comboBox_gas4"/>
+       <widget class="QComboBox" name="comboBox_gas4">
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>16777215</height>
+         </size>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -4029,6 +4105,12 @@
      <layout class="QHBoxLayout" name="horizontalLayout_9">
       <item>
        <widget class="QRadioButton" name="radioButton_f5_1">
+        <property name="maximumSize">
+         <size>
+          <width>50</width>
+          <height>16777215</height>
+         </size>
+        </property>
         <property name="text">
          <string>1</string>
         </property>
@@ -4036,6 +4118,12 @@
       </item>
       <item>
        <widget class="QRadioButton" name="radioButton_f5_2">
+        <property name="maximumSize">
+         <size>
+          <width>50</width>
+          <height>16777215</height>
+         </size>
+        </property>
         <property name="text">
          <string>2</string>
         </property>
@@ -4045,7 +4133,14 @@
        </widget>
       </item>
       <item>
-       <widget class="QComboBox" name="comboBox_gas5"/>
+       <widget class="QComboBox" name="comboBox_gas5">
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>16777215</height>
+         </size>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -4066,7 +4161,7 @@
    <widget class="QPushButton" name="pushButton_load">
     <property name="geometry">
      <rect>
-      <x>1700</x>
+      <x>1690</x>
       <y>1430</y>
       <width>100</width>
       <height>31</height>
@@ -4074,6 +4169,19 @@
     </property>
     <property name="text">
      <string>Load</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_reset">
+    <property name="geometry">
+     <rect>
+      <x>1790</x>
+      <y>1430</y>
+      <width>100</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Reset</string>
     </property>
    </widget>
   </widget>

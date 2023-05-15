@@ -179,8 +179,9 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.spinBox_steps.valueChanged.connect(self.manage_number_of_steps)
         self.tableWidget_program.cellChanged.connect(self.handle_program_changes)
         self.pushButton_visu_gas_program.clicked.connect(self.manage_duration_n_rate)
-        self.pushButton_export.clicked.connect(self.file_save)
+        self.pushButton_export.clicked.connect(self.save_gas_program)
         self.pushButton_load.clicked.connect(self.load_gas_program)
+        self.pushButton_reset.clicked.connect(self.reset_gas_program)
         self.gas_program_steps = {}
 
 
@@ -279,32 +280,36 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
     ################## Gas program ###################
 
+    def reset_gas_program(self):
+        self.init_table_widget()
+        self.tableWidget_program.setColumnCount(1)
+        self.tableWidget_program.setRowCount(8)
 
-    def save_program_data(self):
-        _saveFile = QtWidgets.QAction("&Save File", self)
-        _saveFile.setShortcut('Ctrl+S')
-        _saveFile.setStatusTip('Save File')
-        _saveFile.triggered.connect(self.file_save)
 
-    def file_save(self):
-        path, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', '/home/xf08id/Documents/xsample_program/',
-                                                        '*.xlsx')
-        print(path)
-        print(str(path))
+    def save_gas_program(self):
+        try:
+            path, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File',
+                                                            '/home/xf08id/Documents/xsample_program/',
+                                                            '*.xlsx')
+        except Exception as e:
+            print('Error: ', e)
+        df = self.create_dataframe()
+        try:
+            df.to_excel(path + '.xlsx')
+        except:
+            pass
 
-        self.create_dataframe(path)
-
-    def create_dataframe(self, path):
-        param  = ['temp', 'duration', 'rate', 'flow1', 'flow2', 'flow3', 'flow4', 'flow5']
-        _ch  = [0, 0, 0]
+    def create_dataframe(self):
+        param = ['temp', 'duration', 'rate', 'flow1', 'flow2', 'flow3', 'flow4', 'flow5']
+        _ch = [0, 0, 0]
         _gas = [0, 0, 0]
-        for i in range(1,6):
+        for i in range(1, 6):
             if self.gas_program_steps[0]['flow_' + str(i)]:
-                _ch.append(self.gas_program_steps[0]['flow_'+str(i)]['channel'])
-                _gas.append(self.gas_program_steps[0]['flow_'+str(i)]['name'])
+                _ch.append(self.gas_program_steps[0]['flow_' + str(i)]['channel'])
+                _gas.append(self.gas_program_steps[0]['flow_' + str(i)]['name'])
             else:
-                _ch.append(0)
-                _gas.append(None)
+                _ch.append(-1)
+                _gas.append(-1)
 
         _df = pd.DataFrame()
         _df['param'] = param
@@ -316,55 +321,73 @@ class XsampleGui(*uic.loadUiType(ui_path)):
             _t.append(self.gas_program_steps[key]['temp'])
             _t.append(self.gas_program_steps[key]['duration'])
             _t.append(self.gas_program_steps[key]['rate'])
-            for j in range(1,6):
+            for j in range(1, 6):
                 if self.gas_program_steps[0]['flow_' + str(j)]:
-                    _t.append(self.gas_program_steps[0]['flow_'+str(j)]['flow'])
+                    _t.append(self.gas_program_steps[0]['flow_' + str(j)]['flow'])
                 else:
-                    _t.append(None)
-            _df[i+1] = _t
+                    _t.append(-1)
+            _df[i + 1] = _t
 
-        _df.to_excel(path + '.xlsx')
+        return _df
 
     def load_gas_program(self):
-        path, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File', '/home/xf08id/Documents/xsample_program/',
-                                                        '*.xlsx')
-        self.create_table_using_xlsx_file(path)
+        try:
+            path, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File',
+                                                            '/User/akhiltayal/Documents/Software/pyqt/',
+                                                            '*.xlsx')
+        except Exception as e:
+            print("Error: ", e)
+
+        try:
+            self.create_table_using_xlsx_file(path)
+        except:
+            pass
 
     def create_table_using_xlsx_file(self, path):
-        pass
+        _df = pd.read_excel(path, index_col=0)
+        no_of_steps = len(_df.columns) - 3
+        self.tableWidget_program.setColumnCount(no_of_steps)
+        self.tableWidget_program.setRowCount(8)
 
+        for i, ch in enumerate(_df['channel'][3:], start=1):
+            if ch == 1:
+                getattr(self, 'radioButton_f' + str(i) + '_' + str(ch)).setChecked(True)
+            elif ch == 2:
+                getattr(self, 'radioButton_f' + str(i) + '_' + str(ch)).setChecked(True)
 
+        for i, gas in enumerate(_df['gas'][3:], start=1):
+            if type(gas) is str:
+                getattr(self, 'comboBox_gas' + str(i)).setCurrentIndex(self.combo_box_options[gas])
+            else:
+                getattr(self, 'comboBox_gas' + str(i)).setCurrentIndex(0)
 
-
-
-
-
-
-
+        for step in range(1, no_of_steps + 1):
+            for i, value in enumerate(_df[step]):
+                item = QtWidgets.QTableWidgetItem(str(value))
+                self.tableWidget_program.setItem(i, step - 1, item)
 
     def init_table_widget(self):
         self.manage_number_of_steps()
-        self.tableWidget_program.setVerticalHeaderLabels(('Temperature, C°', 'Duration, min','Ramp rate, C°/min',
+        self.tableWidget_program.setVerticalHeaderLabels(('Temperature, C°', 'Duration, min', 'Ramp rate, C°/min',
                                                           'Flow rate 1, sccm', 'Flow rate 2, sccm',
                                                           'Flow rate 3, sccm', 'Flow rate 4, sccm',
                                                           'Flow rate 5, sccm'
                                                           ))
 
-        combo_box_options = ['None',
-                             'CH4',
-                             'CO',
-                             'H2',
-                             'He',
-                             'N2',
-                             'Ar',
-                             'O2',
-                             'CO-ch',
-                             'CO2']
+        self.combo_box_options = {'None': 0,
+                                  'CH4': 1,
+                                  'CO': 2,
+                                  'H2': 3,
+                                  'He': 4,
+                                  'N2': 5,
+                                  'Ar': 6,
+                                  'O2': 7,
+                                  'CO-ch': 8,
+                                  'CO2': 9}
         for indx in range(5):
             combo = getattr(self, f'comboBox_gas{indx + 1}')
-            for option in combo_box_options:
+            for option in self.combo_box_options.keys():
                 combo.addItem(option)
-
 
     def manage_number_of_steps(self):
         no_of_steps = self.spinBox_steps.value()
@@ -372,19 +395,18 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.tableWidget_program.setRowCount(8)
         self.handle_program_changes()
 
-
     def handle_program_changes(self):
         self.gas_program_steps = {}
         no_of_columns = self.tableWidget_program.columnCount()
 
-        _tmp = {'temp' : None,
-                'duration' : None,
-                'rate' : None,
+        _tmp = {'temp': None,
+                'duration': None,
+                'rate': None,
                 'flow_1': None,
-                'flow_2' : None,
-                'flow_3' : None,
-                'flow_4' : None,
-                'flow_5' : None,
+                'flow_2': None,
+                'flow_3': None,
+                'flow_4': None,
+                'flow_5': None,
                 }
         for col in range(no_of_columns):
 
@@ -394,51 +416,62 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                 else:
                     return 2
 
-
             self.gas_program_steps[col] = {}
 
             for i, key in enumerate(['temp', 'duration', 'rate']):
-                _tmp[key] = self.tableWidget_program.item(i,col)
+                _tmp[key] = self.tableWidget_program.item(i, col)
                 if _tmp[key]:
-                    self.gas_program_steps[col][key] = float(_tmp[key].text())
+                    try:
+                        _value = float(_tmp[key].text())
+                        self.gas_program_steps[col][key] = _value
+                    except Exception as e:
+                        print('Enter numerical values. Error: ', e)
                 else:
                     self.gas_program_steps[col][key] = None
 
-
             for j, gas_key in enumerate(['flow_1', 'flow_2', 'flow_3', 'flow_4', 'flow_5'], start=3):
-                _tmp[gas_key] = self.tableWidget_program.item(j,col)
+                _tmp[gas_key] = self.tableWidget_program.item(j, col)
 
                 if _tmp[gas_key]:
                     self.gas_program_steps[col][gas_key] = {}
 
-                    ch = check_status_of_radioButton(j-2)
+                    ch = check_status_of_radioButton(j - 2)
                     self.gas_program_steps[col][gas_key]['channel'] = ch
-                    self.gas_program_steps[col][gas_key]['name'] = getattr(self, 'comboBox_gas' + str(j-2)).currentText()
-                    self.gas_program_steps[col][gas_key]['flow'] = float(_tmp[gas_key].text())
+                    self.gas_program_steps[col][gas_key]['name'] = getattr(self,
+                                                                           'comboBox_gas' + str(j - 2)).currentText()
+
+                    try:
+                        _value = float(_tmp[gas_key].text())
+                        self.gas_program_steps[col][gas_key]['flow'] = float(_tmp[gas_key].text())
+                    except Exception as e:
+                        print('Enter numerical values. Error: ', e)
+                        self.gas_program_steps[col][gas_key]['flow'] = -1
                 else:
                     self.gas_program_steps[col][gas_key] = None
 
     def manage_duration_n_rate(self):
-        previous_temp =  25
+        previous_temp = 25
         for i, key in enumerate(self.gas_program_steps.keys()):
             if self.gas_program_steps[key]['temp']:
 
                 print(f"previous_temp: {previous_temp}")
 
-
                 if self.gas_program_steps[key]['duration'] and (self.gas_program_steps[key]['duration'] > 0):
-                    self.gas_program_steps[key]['rate'] = abs((self.gas_program_steps[key]['temp'] - previous_temp)/self.gas_program_steps[key]['duration'])
+                    self.gas_program_steps[key]['rate'] = np.around(
+                        abs((self.gas_program_steps[key]['temp'] - previous_temp) / self.gas_program_steps[key][
+                            'duration']), 2)
 
                     print(f"rate: {self.gas_program_steps[key]['rate']}")
 
                     item = QtWidgets.QTableWidgetItem(str(self.gas_program_steps[key]['rate']))
-                    self.tableWidget_program.setItem(2,i, item)
+                    self.tableWidget_program.setItem(2, i, item)
                     previous_temp = self.gas_program_steps[key]['temp']
                     continue
                 elif self.gas_program_steps[key]['rate'] and (self.gas_program_steps[key]['rate'] > 0):
 
-
-                    self.gas_program_steps[key]['duration'] = abs((self.gas_program_steps[key]['temp'] - previous_temp)/self.gas_program_steps[key]['rate'])
+                    self.gas_program_steps[key]['duration'] = np.around(
+                        abs((self.gas_program_steps[key]['temp'] - previous_temp) / self.gas_program_steps[key][
+                            'rate']), 2)
 
                     print(f"duration: {self.gas_program_steps[key]['duration']}")
 
@@ -448,35 +481,203 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.visualize_temperature_program()
 
 
-
-    def read_temperature_program_data(self):
-        times = []
-        sps = []
-
-        for i, key in enumerate(self.gas_program_steps):
-            if self.gas_program_steps[i]['temp'] and self.gas_program_steps[i]['duration']:
-                times.append(self.gas_program_steps[i]['duration'])
-                sps.append(self.gas_program_steps[i]['temp'])
-
-        times = np.cumsum(times)
-        times = np.hstack((0, np.array(times))) * 60
-        sps = np.hstack((self.current_sample_env.current_pv_reading(), np.array(sps)))
-        print('The parsed program:')
-        for _time, _sp in zip(times, sps):
-            print('time', _time, '\ttemperature', _sp)
-        self.pid_program = {'times': times, 'setpoints': sps}
-
-    def visualize_temperature_program(self):
-        self.read_temperature_program_data()
-        self.plot_program_flag = True
-        self.program_plot_moving_flag = True
-        self.update_plot_program_data()
-        self.update_status()
-
-
-
-
-
+    # def save_program_data(self):
+    #     _saveFile = QtWidgets.QAction("&Save File", self)
+    #     _saveFile.setShortcut('Ctrl+S')
+    #     _saveFile.setStatusTip('Save File')
+    #     _saveFile.triggered.connect(self.file_save)
+    #
+    # def file_save(self):
+    #     path, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', '/home/xf08id/Documents/xsample_program/',
+    #                                                     '*.xlsx')
+    #     print(path)
+    #     print(str(path))
+    #
+    #     self.create_dataframe(path)
+    #
+    # def create_dataframe(self, path):
+    #     param  = ['temp', 'duration', 'rate', 'flow1', 'flow2', 'flow3', 'flow4', 'flow5']
+    #     _ch  = [0, 0, 0]
+    #     _gas = [0, 0, 0]
+    #     for i in range(1,6):
+    #         if self.gas_program_steps[0]['flow_' + str(i)]:
+    #             _ch.append(self.gas_program_steps[0]['flow_'+str(i)]['channel'])
+    #             _gas.append(self.gas_program_steps[0]['flow_'+str(i)]['name'])
+    #         else:
+    #             _ch.append(0)
+    #             _gas.append(None)
+    #
+    #     _df = pd.DataFrame()
+    #     _df['param'] = param
+    #     _df['channel'] = _ch
+    #     _df['gas'] = _gas
+    #
+    #     for i, key in enumerate(self.gas_program_steps.keys()):
+    #         _t = []
+    #         _t.append(self.gas_program_steps[key]['temp'])
+    #         _t.append(self.gas_program_steps[key]['duration'])
+    #         _t.append(self.gas_program_steps[key]['rate'])
+    #         for j in range(1,6):
+    #             if self.gas_program_steps[0]['flow_' + str(j)]:
+    #                 _t.append(self.gas_program_steps[0]['flow_'+str(j)]['flow'])
+    #             else:
+    #                 _t.append(None)
+    #         _df[i+1] = _t
+    #
+    #     _df.to_excel(path + '.xlsx')
+    #
+    # def load_gas_program(self):
+    #     path, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File', '/home/xf08id/Documents/xsample_program/',
+    #                                                     '*.xlsx')
+    #     self.create_table_using_xlsx_file(path)
+    #
+    # def create_table_using_xlsx_file(self, path):
+    #     pass
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    # def init_table_widget(self):
+    #     self.manage_number_of_steps()
+    #     self.tableWidget_program.setVerticalHeaderLabels(('Temperature, C°', 'Duration, min','Ramp rate, C°/min',
+    #                                                       'Flow rate 1, sccm', 'Flow rate 2, sccm',
+    #                                                       'Flow rate 3, sccm', 'Flow rate 4, sccm',
+    #                                                       'Flow rate 5, sccm'
+    #                                                       ))
+    #
+    #     combo_box_options = ['None',
+    #                          'CH4',
+    #                          'CO',
+    #                          'H2',
+    #                          'He',
+    #                          'N2',
+    #                          'Ar',
+    #                          'O2',
+    #                          'CO-ch',
+    #                          'CO2']
+    #     for indx in range(5):
+    #         combo = getattr(self, f'comboBox_gas{indx + 1}')
+    #         for option in combo_box_options:
+    #             combo.addItem(option)
+    #
+    #
+    # def manage_number_of_steps(self):
+    #     no_of_steps = self.spinBox_steps.value()
+    #     self.tableWidget_program.setColumnCount(no_of_steps)
+    #     self.tableWidget_program.setRowCount(8)
+    #     self.handle_program_changes()
+    #
+    #
+    # def handle_program_changes(self):
+    #     self.gas_program_steps = {}
+    #     no_of_columns = self.tableWidget_program.columnCount()
+    #
+    #     _tmp = {'temp' : None,
+    #             'duration' : None,
+    #             'rate' : None,
+    #             'flow_1': None,
+    #             'flow_2' : None,
+    #             'flow_3' : None,
+    #             'flow_4' : None,
+    #             'flow_5' : None,
+    #             }
+    #     for col in range(no_of_columns):
+    #
+    #         def check_status_of_radioButton(channel=None):
+    #             if getattr(self, 'radioButton_f' + str(channel) + '_1').isChecked():
+    #                 return 1
+    #             else:
+    #                 return 2
+    #
+    #
+    #         self.gas_program_steps[col] = {}
+    #
+    #         for i, key in enumerate(['temp', 'duration', 'rate']):
+    #             _tmp[key] = self.tableWidget_program.item(i,col)
+    #             if _tmp[key]:
+    #                 self.gas_program_steps[col][key] = float(_tmp[key].text())
+    #             else:
+    #                 self.gas_program_steps[col][key] = None
+    #
+    #
+    #         for j, gas_key in enumerate(['flow_1', 'flow_2', 'flow_3', 'flow_4', 'flow_5'], start=3):
+    #             _tmp[gas_key] = self.tableWidget_program.item(j,col)
+    #
+    #             if _tmp[gas_key]:
+    #                 self.gas_program_steps[col][gas_key] = {}
+    #
+    #                 ch = check_status_of_radioButton(j-2)
+    #                 self.gas_program_steps[col][gas_key]['channel'] = ch
+    #                 self.gas_program_steps[col][gas_key]['name'] = getattr(self, 'comboBox_gas' + str(j-2)).currentText()
+    #                 self.gas_program_steps[col][gas_key]['flow'] = float(_tmp[gas_key].text())
+    #             else:
+    #                 self.gas_program_steps[col][gas_key] = None
+    #
+    # def manage_duration_n_rate(self):
+    #     previous_temp =  25
+    #     for i, key in enumerate(self.gas_program_steps.keys()):
+    #         if self.gas_program_steps[key]['temp']:
+    #
+    #             print(f"previous_temp: {previous_temp}")
+    #
+    #
+    #             if self.gas_program_steps[key]['duration'] and (self.gas_program_steps[key]['duration'] > 0):
+    #                 self.gas_program_steps[key]['rate'] = abs((self.gas_program_steps[key]['temp'] - previous_temp)/self.gas_program_steps[key]['duration'])
+    #
+    #                 print(f"rate: {self.gas_program_steps[key]['rate']}")
+    #
+    #                 item = QtWidgets.QTableWidgetItem(str(self.gas_program_steps[key]['rate']))
+    #                 self.tableWidget_program.setItem(2,i, item)
+    #                 previous_temp = self.gas_program_steps[key]['temp']
+    #                 continue
+    #             elif self.gas_program_steps[key]['rate'] and (self.gas_program_steps[key]['rate'] > 0):
+    #
+    #
+    #                 self.gas_program_steps[key]['duration'] = abs((self.gas_program_steps[key]['temp'] - previous_temp)/self.gas_program_steps[key]['rate'])
+    #
+    #                 print(f"duration: {self.gas_program_steps[key]['duration']}")
+    #
+    #                 item = QtWidgets.QTableWidgetItem(str(self.gas_program_steps[key]['duration']))
+    #                 self.tableWidget_program.setItem(1, i, item)
+    #                 previous_temp = self.gas_program_steps[key]['temp']
+    #     self.visualize_temperature_program()
+    #
+    #
+    #
+    # def read_temperature_program_data(self):
+    #     times = []
+    #     sps = []
+    #
+    #     for i, key in enumerate(self.gas_program_steps):
+    #         if self.gas_program_steps[i]['temp'] and self.gas_program_steps[i]['duration']:
+    #             times.append(self.gas_program_steps[i]['duration'])
+    #             sps.append(self.gas_program_steps[i]['temp'])
+    #
+    #     times = np.cumsum(times)
+    #     times = np.hstack((0, np.array(times))) * 60
+    #     sps = np.hstack((self.current_sample_env.current_pv_reading(), np.array(sps)))
+    #     print('The parsed program:')
+    #     for _time, _sp in zip(times, sps):
+    #         print('time', _time, '\ttemperature', _sp)
+    #     self.pid_program = {'times': times, 'setpoints': sps}
+    #
+    # def visualize_temperature_program(self):
+    #     self.read_temperature_program_data()
+    #     self.plot_program_flag = True
+    #     self.program_plot_moving_flag = True
+    #     self.update_plot_program_data()
+    #     self.update_status()
+    #
+    #
+    #
+    #
+    #
 
     ################## Gas program ###################
 
