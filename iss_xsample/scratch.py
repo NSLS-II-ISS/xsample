@@ -226,7 +226,7 @@
 #         item = QtWidgets.QTableWidgetItem(str(duration))
 #         item.setForeground(QtGui.QBrush(QtGui.QColor(78, 190, 181)))
 #         self.tableWidget_program.setItem(2, column, item)
-#         .setForeground(QtGui.QBrush(QtGui.QColor(0, 0, 0)))
+#         self.setForeground(QtGui.QBrush(QtGui.QColor(0, 0, 0)))
 #         self.step_priority[column] = 1  # one is priority on ramp
 #
 #     def duration_driven(column, t_range):

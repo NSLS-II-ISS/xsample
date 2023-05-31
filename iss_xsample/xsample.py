@@ -66,11 +66,6 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.num_steps = 30
         self.step_priority = np.zeros(self.num_steps)
 
-
-
-
-
-
         self.push_clear_program.clicked.connect(self.clear_program)
         self.push_start_program.clicked.connect(self.start_program)
         self.push_pause_program.setChecked(0)
@@ -182,12 +177,12 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
         self.spinBox_steps.valueChanged.connect(self.manage_number_of_steps)
         self.tableWidget_program.cellChanged.connect(self.handle_program_changes)
-        self.push_visualize_program.clicked.connect(self.visualize_program)
-        self.pushButton_visu_gas_program.clicked.connect(self.manage_duration_n_rate)
+
+        self.pushButton_visualize_program.clicked.connect(self.manage_duration_n_rate)
         self.pushButton_export.clicked.connect(self.save_gas_program)
         self.pushButton_load.clicked.connect(self.load_gas_program)
         self.pushButton_reset.clicked.connect(self.reset_gas_program)
-        self.gas_program_steps = {}
+        self.process_program_steps = {}
 
         ################## Gas program ###################
 
@@ -215,9 +210,9 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         _ch = [0, 0, 0]
         _gas = [0, 0, 0]
         for i in range(1, 6):
-            if self.gas_program_steps[0]['flow_' + str(i)]:
-                _ch.append(self.gas_program_steps[0]['flow_' + str(i)]['channel'])
-                _gas.append(self.gas_program_steps[0]['flow_' + str(i)]['name'])
+            if self.process_program_steps[0]['flow_' + str(i)]:
+                _ch.append(self.process_program_steps[0]['flow_' + str(i)]['channel'])
+                _gas.append(self.process_program_steps[0]['flow_' + str(i)]['name'])
             else:
                 _ch.append(-1)
                 _gas.append(-1)
@@ -227,14 +222,14 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         _df['channel'] = _ch
         _df['gas'] = _gas
 
-        for i, key in enumerate(self.gas_program_steps.keys()):
+        for i, key in enumerate(self.process_program_steps.keys()):
             _value = []
-            _value.append(self.gas_program_steps[key]['temp'])
-            _value.append(self.gas_program_steps[key]['duration'])
-            _value.append(self.gas_program_steps[key]['rate'])
+            _value.append(self.process_program_steps[key]['temp'])
+            _value.append(self.process_program_steps[key]['duration'])
+            _value.append(self.process_program_steps[key]['rate'])
             for j in range(1, 6):
-                if self.gas_program_steps[i]['flow_' + str(j)]:
-                    _value.append(self.gas_program_steps[i]['flow_' + str(j)]['flow'])
+                if self.process_program_steps[i]['flow_' + str(j)]:
+                    _value.append(self.process_program_steps[i]['flow_' + str(j)]['flow'])
                 else:
                     _value.append(-1)
             _df[i + 1] = _value
@@ -304,23 +299,142 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         no_of_steps = self.spinBox_steps.value()
         self.tableWidget_program.setColumnCount(no_of_steps)
         self.tableWidget_program.setRowCount(8)
-        self.create_gas_program_dict()
+
+        #zero padding
+        for _row in range(3,8):
+            for _column in range(no_of_steps):
+                flow_rate = self.tableWidget_program.item(_row, _column)
+                if flow_rate:
+                    break
+            for _column in range(no_of_steps):
+                flow_rate = self.tableWidget_program.item(_row, _column)
+                if not flow_rate:
+                    item = QtWidgets.QTableWidgetItem('0')
+                    self.tableWidget_program.setItem(_row, _column, item)
+
+
+
+
+
+
+
 
     def handle_program_changes(self, row, column):
-        if row > 2:
-            item = QtWidgets.QTableWidgetItem('0')
+        def ramp_driven(column, t_range):
+            ramp_rate = self.tableWidget_program.item(1, column).text()
             try:
-                float(self.tableWidget_program.item(row, column).text())
+                ramp_rate = int(ramp_rate)
+                duration = t_range / ramp_rate
+                item = QtWidgets.QTableWidgetItem(str(duration))
+                item.setForeground(QtGui.QBrush(QtGui.QColor(78, 190, 181)))
+                self.tableWidget_program.setItem(2, column, item)
+                self.tableWidget_program.item(1, column).setForeground(QtGui.QBrush(QtGui.QColor(0, 0, 0)))
+                self.step_priority[column] = 1  # one is priority on ramp
             except:
-                self.tableWidget_program.setItem(row, column, item)
+                message_box('Error 5', 'Non numerical value entered. Resetting to default value. Please check')
+                item = QtWidgets.QTableWidgetItem('10')
+                self.tableWidget_program.setItem(1, column, item)
 
-            if float(self.tableWidget_program.item(row, column).text())<0:
-                self.tableWidget_program.setItem(row, column, item)
+        def duration_driven(column, t_range):
+            duration = self.tableWidget_program.item(2, column).text()
+            try:
+                duration = int(duration)
+                ramp = t_range / duration
+                item = QtWidgets.QTableWidgetItem(str(ramp))
+                item.setForeground(QtGui.QBrush(QtGui.QColor(78, 190, 181)))
+                self.tableWidget_program.setItem(1, column, item)
+                self.tableWidget_program.item(2, column).setForeground(QtGui.QBrush(QtGui.QColor(0, 0, 0)))
+                self.step_priority[column] = 2  # one is priority on duration
+            except:
+                message_box('Error 4','Non numerical value entered. Resetting to default value. Please check')
+                item = QtWidgets.QTableWidgetItem('10')
+                self.tableWidget_program.setItem(2, column, item)
+        self.tableWidget_program.cellChanged.disconnect(self.handle_program_changes)
+        sample_env = self.current_sample_env
+        print(row, column)
+        temperature = None
+        previous_temperature = None
+        if column > 0:
+            if self.tableWidget_program.item(0, column - 1):
+                if self.tableWidget_program.item(0, column - 1).text()!= '':
+                    previous_temperature = int(self.tableWidget_program.item(0, column - 1).text())
+            if self.tableWidget_program.item(0, column):
+                temperature = int(self.tableWidget_program.item(0, column).text())
+        else:
+            previous_temperature = np.round(sample_env.pv.get())
+            if previous_temperature >1300:
+                print('Thermocouple is disconnected')
+                previous_temperature= 25
+            if self.tableWidget_program.item(0, column):
+                if self.tableWidget_program.item(0, column).text() != '':
+                    temperature = int(self.tableWidget_program.item(0, column).text())
+        if temperature and previous_temperature:
+            t_range = temperature - previous_temperature
+            if row == 0:
+                if self.tableWidget_program.item(1, column):
+                    ramp_driven(column,t_range)
+                elif self.tableWidget_program.item(2, column):
+                    duration_driven(column,t_range)
+            if row == 1:
+                if self.tableWidget_program.item(1, column): #ramp
+                    ramp_driven(column, t_range)
+            elif row ==2:
+                if self.tableWidget_program.item(2, column): #duration
+                    duration_driven(column, t_range)
 
-        self.create_gas_program_dict()
+        if row > 2:
+            flow_rate = self.tableWidget_program.item(row, column).text()
+            flag = True
+            try:
+               float(flow_rate)
+               # if flow_rate < 0:
+               #     message_box('Error', 'Negative value entered. Resetting to default value. Please re-check')
+               #     flag = False
+            except:
+                message_box('Error', 'Non numerical value entered. Resetting to default value. Please re-check')
+                flag = False
+            if flag == False:
+                item = QtWidgets.QTableWidgetItem('0')
+                self.tableWidget_program.setItem(row, column, item)
+            if flag == True:
+                for j in range(self.spinBox_steps.value()):
+                    _is_empty = False
+                    if j != column:
+                        if self.tableWidget_program.item(row, j):
+                            if self.tableWidget_program.item(row, j).text() == '':
+                                _is_empty = True
+                        else:
+                            _is_empty = True
+                        if _is_empty:
+                            item = QtWidgets.QTableWidgetItem('0')
+                            self.tableWidget_program.setItem(row, j, item)
+
+
+
+
+
+
+
+
+
+        #
+        #
+        #
+        # if row > 2:
+        #     item = QtWidgets.QTableWidgetItem('0')
+        #     try:
+        #         float(self.tableWidget_program.item(row, column).text())
+        #     except:
+        #         self.tableWidget_program.setItem(row, column, item)
+        #
+        #     if float(self.tableWidget_program.item(row, column).text())<0:
+        #         self.tableWidget_program.setItem(row, column, item)
+
+        self.tableWidget_program.cellChanged.connect(self.handle_program_changes)
+
 
     def create_gas_program_dict(self):
-        self.gas_program_steps = {}
+        self.process_program_steps = {}
         no_of_columns = self.tableWidget_program.columnCount()
 
         _tmp = {'temp': None,
@@ -340,86 +454,88 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                 else:
                     return 2
 
-            self.gas_program_steps[col] = {}
+            self.process_program_steps[col] = {}
 
             for i, key in enumerate(['temp', 'duration', 'rate']):
                 _tmp[key] = self.tableWidget_program.item(i, col)
                 if _tmp[key]:
                     try:
                         _value = float(_tmp[key].text())
-                        self.gas_program_steps[col][key] = _value
+                        self.process_program_steps[col][key] = _value
                     except Exception as e:
-                        print('Enter numerical values. Error: ', e)
+                        message_box('Error','Enter numerical value')
                 else:
-                    self.gas_program_steps[col][key] = None
+                    self.process_program_steps[col][key] = None
 
             for j, gas_key in enumerate(['flow_1', 'flow_2', 'flow_3', 'flow_4', 'flow_5'], start=3):
                 _tmp[gas_key] = self.tableWidget_program.item(j, col)
 
                 if _tmp[gas_key]:
-                    self.gas_program_steps[col][gas_key] = {}
-
+                    self.process_program_steps[col][gas_key] = {}
                     ch = check_status_of_radioButton(j - 2)
-                    self.gas_program_steps[col][gas_key]['channel'] = ch
-                    self.gas_program_steps[col][gas_key]['name'] = getattr(self,
+                    self.process_program_steps[col][gas_key]['channel'] = ch
+                    self.process_program_steps[col][gas_key]['name'] = getattr(self,
                                                                            'comboBox_gas' + str(
                                                                                j - 2)).currentText()
 
                     try:
                         _value = float(_tmp[gas_key].text())
-                        self.gas_program_steps[col][gas_key]['flow'] = float(_tmp[gas_key].text())
+                        self.process_program_steps[col][gas_key]['flow'] = float(_tmp[gas_key].text())
                     except Exception as e:
-                        print('Enter numerical values. Error: ', e)
-                        self.gas_program_steps[col][gas_key]['flow'] = -1
+                        message_box('Error','Enter numerical values')
+                        self.process_program_steps[col][gas_key]['flow'] = -1
                 else:
-                    self.gas_program_steps[col][gas_key] = None
+                    self.process_program_steps[col][gas_key] = None
 
     def manage_duration_n_rate(self):
-        previous_temp = 25
-        for i, key in enumerate(self.gas_program_steps.keys()):
-            if self.gas_program_steps[key]['temp']:
+        self.create_gas_program_dict()
 
-                print(f"previous_temp: {previous_temp}")
-
-                if self.gas_program_steps[key]['duration'] and (self.gas_program_steps[key]['duration'] > 0):
-                    self.gas_program_steps[key]['rate'] = np.around(
-                        abs((self.gas_program_steps[key]['temp'] - previous_temp) / self.gas_program_steps[key][
-                            'duration']), 2)
-
-                    print(f"rate: {self.gas_program_steps[key]['rate']}")
-
-                    item = QtWidgets.QTableWidgetItem(str(self.gas_program_steps[key]['rate']))
-                    self.tableWidget_program.setItem(2, i, item)
-                    previous_temp = self.gas_program_steps[key]['temp']
-                    continue
-                elif self.gas_program_steps[key]['rate'] and (self.gas_program_steps[key]['rate'] > 0):
-
-                    self.gas_program_steps[key]['duration'] = np.around(
-                        abs((self.gas_program_steps[key]['temp'] - previous_temp) / self.gas_program_steps[key][
-                            'rate']), 2)
-
-                    print(f"duration: {self.gas_program_steps[key]['duration']}")
-
-                    item = QtWidgets.QTableWidgetItem(str(self.gas_program_steps[key]['duration']))
-                    self.tableWidget_program.setItem(1, i, item)
-                    previous_temp = self.gas_program_steps[key]['temp']
-
+        # previous_temp = 25
+        # for i, key in enumerate(self.process_program_steps.keys()):
+        #     if self.process_program_steps[key]['temp']:
+        #
+        #         print(f"previous_temp: {previous_temp}")
+        #
+        #         if self.process_program_steps[key]['duration'] and (self.process_program_steps[key]['duration'] > 0):
+        #             self.process_program_steps[key]['rate'] = np.around(
+        #                 abs((self.process_program_steps[key]['temp'] - previous_temp) / self.process_program_steps[key][
+        #                     'duration']), 2)
+        #
+        #             print(f"rate: {self.process_program_steps[key]['rate']}")
+        #
+        #             item = QtWidgets.QTableWidgetItem(str(self.process_program_steps[key]['rate']))
+        #             self.tableWidget_program.setItem(2, i, item)
+        #             previous_temp = self.process_program_steps[key]['temp']
+        #             continue
+        #         elif self.process_program_steps[key]['rate'] and (self.process_program_steps[key]['rate'] > 0):
+        #
+        #             self.process_program_steps[key]['duration'] = np.around(
+        #                 abs((self.process_program_steps[key]['temp'] - previous_temp) / self.process_program_steps[key][
+        #                     'rate']), 2)
+        #
+        #             print(f"duration: {self.process_program_steps[key]['duration']}")
+        #
+        #             item = QtWidgets.QTableWidgetItem(str(self.process_program_steps[key]['duration']))
+        #             self.tableWidget_program.setItem(1, i, item)
+        #             previous_temp = self.process_program_steps[key]['temp']
+        #
         self.visualize_temperature_program()
 
 
     def read_program_data(self):
         times = []
         sps = []
-
-
-        for i, key in enumerate(self.gas_program_steps):
-            if self.gas_program_steps[i]['temp'] and self.gas_program_steps[i]['duration']:
-                times.append(self.gas_program_steps[i]['duration'])
-                sps.append(self.gas_program_steps[i]['temp'])
+        for i, key in enumerate(self.process_program_steps):
+            if self.process_program_steps[i]['temp'] and self.process_program_steps[i]['duration']:
+                times.append(self.process_program_steps[i]['duration'])
+                sps.append(self.process_program_steps[i]['temp'])
 
         times = np.cumsum(times)
         times = np.hstack((0, np.array(times))) * 60
-        sps = np.hstack((self.current_sample_env.current_pv_reading(), np.array(sps)))
+        starting_temp = self.current_sample_env.current_pv_reading()
+        if int(starting_temp) >1300:
+            starting_temp = 25
+        sps = np.hstack((starting_temp, np.array(sps)))
         print('The parsed program:')
         for _time, _sp in zip(times, sps):
             print('time', _time, '\ttemperature', _sp)
@@ -733,36 +849,6 @@ class XsampleGui(*uic.loadUiType(ui_path)):
             self.update_plotting_status()
 
 
-    # def read_program_data(self):
-    #     table = self.tableWidget_program
-    #     nrows = table.rowCount()
-    #     times = [] # intervals
-    #     sps = [] # setpoints
-    #     for i in range(nrows):
-    #         this_time = table.item(i, 0)
-    #         this_sp = table.item(i, 1)
-    #
-    #         if this_time and this_sp:
-    #             try:
-    #                 times.append(float(this_time.text()))
-    #             except:
-    #                 message_box('Error', 'Time must be numerical')
-    #                 raise ValueError('time must be numerical')
-    #             try:
-    #                 sps.append(float(this_sp.text()))
-    #             except:
-    #                 message_box('Error', 'Temperature must be numerical')
-    #                 raise ValueError('Temperature must be numerical')
-    #
-    #     times = np.cumsum(times)
-    #     times = np.hstack((0, np.array(times))) * 60
-    #     sps = np.hstack((self.current_sample_env.current_pv_reading(), np.array(sps)))
-    #     print('The parsed program:')
-    #     for _time, _sp in zip(times, sps):
-    #         print('time', _time, '\ttemperature', _sp)
-    #     self.process_program = {'times' : times, 'setpoints' : sps}
-
-
     def visualize_program(self):
         self.read_program_data()
         self.plot_program_flag = True
@@ -809,12 +895,8 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
 
     def start_program(self):
-        # if self.pid_program is None:
-        #     self.read_program_data()
         self.visualize_program()
         self.program_plot_moving_flag = False
-        # self.current_sample_env.ramp_start(self.process_program['times'].tolist(),
-        #                                    self.process_program['setpoints'].tolist())
         self.current_sample_env.ramp_start(self.process_program)
 
     def pause_program(self, value):
