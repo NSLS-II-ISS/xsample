@@ -72,6 +72,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.push_pause_program.toggled.connect(self.pause_program)
         self.push_stop_program.clicked.connect(self.stop_program)
         self.pushButton_reset_cart.clicked.connect(self.reset_cart_plc)
+        self.pushButton_switch.clicked.connect(self.switch_gases)
 
         self.process_program = None
         self.plot_program_flag = False
@@ -190,6 +191,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.init_table_widget()
         self.tableWidget_program.setColumnCount(1)
         self.tableWidget_program.setRowCount(8)
+        self.current_sample_env.ramp_stop()
 
 
     def save_gas_program(self):
@@ -351,7 +353,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                 self.tableWidget_program.setItem(2, column, item)
         self.tableWidget_program.cellChanged.disconnect(self.handle_program_changes)
         sample_env = self.current_sample_env
-        print(row, column)
+        # print(f'{row = }, {column = } is changed')
         temperature = None
         previous_temperature = None
         if column > 0:
@@ -892,6 +894,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self._plot_temp_program = None
         self.process_program = None
         self.update_status()
+        self.current_sample_env.ramp_stop()
 
 
     def start_program(self):
@@ -929,11 +932,11 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         ch_num = sender_name[14]
         if sender_name.endswith('exhaust') and sender_object.isChecked():
             self.ghs['channels'][ch_num]['exhaust'].set(1)
-            ttime.sleep(2)
+            #ttime.sleep(2)
             self.ghs['channels'][ch_num]['reactor'].set(0)
         if sender_name.endswith('reactor') and sender_object.isChecked():
             self.ghs['channels'][ch_num]['reactor'].set(1)
-            ttime.sleep(2)
+            #ttime.sleep(2)
             self.ghs['channels'][ch_num]['exhaust'].set(0)
 
     def toggle_bypass_bubbler(self):
@@ -1007,6 +1010,18 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         indx_ch, indx_mnf = re.findall(r'\d+', sender_name)
         value = sender_object.value()
         self.ghs['channels'][indx_ch][f'mfc{indx_mnf}_sp'].set(value)
+
+    def switch_gases(self):
+        print(f'Switch activated at {ttime.ctime()}')
+        if self.radioButton_ch2_reactor.isChecked() and self.radioButton_ch1_exhaust.isChecked():
+            self.radioButton_ch2_exhaust.setChecked(True)
+            self.radioButton_ch1_reactor.setChecked(True)
+        elif self.radioButton_ch1_reactor.isChecked() and self.radioButton_ch2_exhaust.isChecked():
+            self.radioButton_ch1_exhaust.setChecked(True)
+            self.radioButton_ch2_reactor.setChecked(True)
+        else:
+            message_box('Error', 'Check valve status')
+
 
 
 class TempRampManager(object):

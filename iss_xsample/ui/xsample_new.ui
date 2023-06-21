@@ -31,7 +31,7 @@
       <x>1850</x>
       <y>60</y>
       <width>241</width>
-      <height>231</height>
+      <height>258</height>
      </rect>
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout">
@@ -344,8 +344,8 @@
      <rect>
       <x>10</x>
       <y>10</y>
-      <width>621</width>
-      <height>911</height>
+      <width>631</width>
+      <height>961</height>
      </rect>
     </property>
     <property name="title">
@@ -354,7 +354,7 @@
     <widget class="QGroupBox" name="groupBox_2">
      <property name="geometry">
       <rect>
-       <x>0</x>
+       <x>10</x>
        <y>20</y>
        <width>621</width>
        <height>241</height>
@@ -1618,7 +1618,7 @@
     <widget class="QGroupBox" name="groupBox_4">
      <property name="geometry">
       <rect>
-       <x>0</x>
+       <x>10</x>
        <y>510</y>
        <width>371</width>
        <height>141</height>
@@ -1940,10 +1940,10 @@
     <widget class="QGroupBox" name="groupBox_6">
      <property name="geometry">
       <rect>
-       <x>340</x>
-       <y>510</y>
-       <width>201</width>
-       <height>80</height>
+       <x>440</x>
+       <y>530</y>
+       <width>181</width>
+       <height>71</height>
       </rect>
      </property>
      <property name="title">
@@ -1988,7 +1988,7 @@
     <widget class="QGroupBox" name="groupBox_3">
      <property name="geometry">
       <rect>
-       <x>0</x>
+       <x>10</x>
        <y>260</y>
        <width>621</width>
        <height>231</height>
@@ -3174,7 +3174,7 @@
     <widget class="QGroupBox" name="groupBox_5">
      <property name="geometry">
       <rect>
-       <x>0</x>
+       <x>10</x>
        <y>670</y>
        <width>251</width>
        <height>251</height>
@@ -3297,6 +3297,19 @@
        </rect>
       </property>
      </widget>
+    </widget>
+    <widget class="QPushButton" name="pushButton_switch">
+     <property name="geometry">
+      <rect>
+       <x>540</x>
+       <y>495</y>
+       <width>81</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Switch</string>
+     </property>
     </widget>
    </widget>
    <widget class="QPushButton" name="pushButton_reset_cart">
@@ -3794,7 +3807,7 @@
      <rect>
       <x>970</x>
       <y>1190</y>
-      <width>171</width>
+      <width>204</width>
       <height>31</height>
      </rect>
     </property>
