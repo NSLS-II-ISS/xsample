@@ -3958,9 +3958,9 @@
     <property name="geometry">
      <rect>
       <x>440</x>
-      <y>1020</y>
+      <y>1010</y>
       <width>191</width>
-      <height>161</height>
+      <height>151</height>
      </rect>
     </property>
     <property name="orientation">

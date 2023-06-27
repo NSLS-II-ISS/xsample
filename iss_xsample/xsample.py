@@ -1094,7 +1094,7 @@ class ArchiverReader(QObject):
         df = self.archiver.tables_given_times(self.some_time_ago, self.now)
         self._df_ = df
 
-        print(f'reading archiver took {ttime.time() - self.now}')
+        # print(f'reading archiver took {ttime.time() - self.now}')
         self.finished.emit()
 
 
