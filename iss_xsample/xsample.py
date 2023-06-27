@@ -11,6 +11,8 @@ import numpy as np
 import pandas as pd
 import pkg_resources
 from PyQt5 import QtGui, QtWidgets, QtCore, uic
+from PyQt5.QtCore import QObject, QThread, pyqtSignal
+
 from PyQt5.Qt import QSplashScreen, QObject
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, \
     NavigationToolbar2QT as NavigationToolbar
@@ -61,6 +63,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.sample_envs_dict = sample_envs_dict
 
         self.RE = RE
+        self._df_ = None
         self.archiver = archiver
 
         self.num_steps = 30
@@ -160,6 +163,11 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                 mfc_sp_object.setValue(value)
                 mfc_sp_object.editingFinished.connect(self.set_flow_rates)
 
+        self.timer_read_archiver = QtCore.QTimer(self)
+        self.timer_read_archiver.setInterval(2000)
+        self.timer_read_archiver.timeout.connect(self.read_archiver)
+        self.timer_read_archiver.singleShot(0, self.read_archiver)
+        self.timer_read_archiver.start()
 
         self.timer_update_time = QtCore.QTimer(self)
         self.timer_update_time.setInterval(2000)
@@ -185,14 +193,33 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.pushButton_reset.clicked.connect(self.reset_gas_program)
         self.process_program_steps = {}
 
+        self.combo_box_options = {'None': 0,
+                                  'CH4': 1,
+                                  'CO': 2,
+                                  'H2': 3,
+                                  'He': 4,
+                                  'N2': 5,
+                                  'Ar': 6,
+                                  'O2': 7,
+                                  'CO-ch': 8,
+                                  'CO2': 9}
+        for indx in range(5):
+            combo = getattr(self, f'comboBox_gas{indx + 1}')
+            for option in self.combo_box_options.keys():
+                combo.addItem(option)
+
         ################## Gas program ###################
 
     def reset_gas_program(self):
-        self.init_table_widget()
         self.tableWidget_program.setColumnCount(1)
         self.tableWidget_program.setRowCount(8)
-        self.current_sample_env.ramp_stop()
 
+        for i in range(1, 6):
+            getattr(self, 'comboBox_gas' + str(i)).setCurrentIndex(0)
+            item = QtWidgets.QTableWidgetItem(str(0))
+            self.tableWidget_program.setItem(0, i+2, item)
+
+        self.current_sample_env.ramp_stop()
 
     def save_gas_program(self):
         try:
@@ -282,20 +309,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                                                           'Flow rate 5, sccm'
                                                           ))
 
-        self.combo_box_options = {'None': 0,
-                                  'CH4': 1,
-                                  'CO': 2,
-                                  'H2': 3,
-                                  'He': 4,
-                                  'N2': 5,
-                                  'Ar': 6,
-                                  'O2': 7,
-                                  'CO-ch': 8,
-                                  'CO2': 9}
-        for indx in range(5):
-            combo = getattr(self, f'comboBox_gas{indx + 1}')
-            for option in self.combo_box_options.keys():
-                combo.addItem(option)
+
 
     def manage_number_of_steps(self):
         no_of_steps = self.spinBox_steps.value()
@@ -607,6 +621,8 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
 
     def update_ghs_status(self):
+        # _start = ttime.time()
+        # print(f'updating ghs status: start')
         # update card MFC setpoints and readbacks
         for indx in range(3):
             mfc_rb_widget = getattr(self, f'spinBox_cart_mfc{indx + 1}_rb')
@@ -638,7 +654,6 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                 getattr(self, f'label_cart_vlv{indx + 1}_status').setStyleSheet('background-color: rgb(0,255,0)')
             else:
                 getattr(self, f'label_cart_vlv{indx + 1}_status').setStyleSheet('background-color: rgb(255,0,0)')
-
 
         # Check rector/exhaust status
         for indx_ch in range(2):
@@ -705,6 +720,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         else:
             self.total_flow_meter.sp.set(0)
         self.label_total_flow.setText(f'{str(self.total_flow_meter.get().rb)} sccm')
+        # print(f'updating ghs status: took {ttime.time() - _start}')
 
     def update_sample_env_status(self):
         sample_env = self.current_sample_env
@@ -730,15 +746,34 @@ class XsampleGui(*uic.loadUiType(ui_path)):
             self.label_program_status.setStyleSheet('background-color: rgb(171,171,171)')
             self.label_program_status.setText('OFF')
 
+    def read_archiver(self):
+        self.thread = QThread()
+        self.archiver_reader = ArchiverReader(self.archiver, self.doubleSpinBox_timewindow.value())
+        self.archiver_reader.moveToThread(self.thread)
+        self.thread.started.connect(self.archiver_reader.run)
+        self.archiver_reader.finished.connect(self._read_archiver)
+        self.archiver_reader.finished.connect(self.thread.quit)
+        self.archiver_reader.finished.connect(self.archiver_reader.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+        self.thread.start()
+
+    def _read_archiver(self):
+        self._df_ = self.archiver_reader._df_.copy()
+        self.now = self.archiver_reader.now
+        self.some_time_ago = self.archiver_reader.some_time_ago
+
+
     def update_plotting_status(self):
-        now = ttime.time()
-        timewindow = self.doubleSpinBox_timewindow.value()
+
+        if self._df_ is None:
+            return
+
+        # _start = ttime.time()
+        # print(f'updating plotting status: start')
         data_format = mdates.DateFormatter('%H:%M:%S')
 
-        some_time_ago = now - 3600 * timewindow
-        df = self.archiver.tables_given_times(some_time_ago, now)
-        self._df_ = df
-        self._xlim_num = [some_time_ago, now]
+
+        self._xlim_num = [self.some_time_ago, self.now]
         # handling the xlim extension due to the program vizualization
         if self.plot_program_flag:
             if self._plot_temp_program is not None:
@@ -751,7 +786,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
         update_figure([self.figure_rga.ax], self.toolbar_rga, self.canvas_rga)
         for rga_ch, mass in zip(self.rga_channels, masses):
-            dataset = df[rga_ch.name]
+            dataset = self._df_[rga_ch.name]
             indx = rga_ch.name[-1]
             if getattr(self, f'checkBox_rga{indx}').isChecked():
                 # put -5 in the winter, -4 in the summer
@@ -773,7 +808,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
             if channels_key == '3':
                 __gas_cart = ['CH4', 'CO', 'H2']
                 for j in range(1, 4):
-                    dataset_mfc_cart = df['mfc_cart_' + __gas_cart[j - 1] + '_rb']
+                    dataset_mfc_cart = self._df_['mfc_cart_' + __gas_cart[j - 1] + '_rb']
                     indx_gc = j
                     if getattr(self, f'checkBox_ch3_mfc{indx_gc}').isChecked():
                         # put -5 in the winter, -4 in the summer
@@ -784,7 +819,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
             else:
                 for i in range(1, 9):
-                    dataset_mfc = df['ghs_ch'+channels_key+'_mfc'+str(i)+'_rb']
+                    dataset_mfc = self._df_['ghs_ch'+channels_key+'_mfc'+str(i)+'_rb']
                     indx_mfc = i
 
                     if getattr(self, f'checkBox_ch{channels_key}_mfc{indx_mfc}').isChecked():
@@ -804,8 +839,8 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
         update_figure([self.figure_temp.ax], self.toolbar_temp, self.canvas_temp)
 
-        dataset_rb = df['temp2']
-        dataset_sp = df['temp2_sp']
+        dataset_rb = self._df_['temp2']
+        dataset_sp = self._df_['temp2_sp']
         dataset_sp = self._pad_dataset_sp(dataset_sp, dataset_rb['time'].values[-1])
 
         self.figure_temp.ax.plot(dataset_sp['time'] + timedelta(hours=time_delta), dataset_sp['data'], label='T setpoint')
@@ -822,6 +857,9 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.figure_temp.ax.legend(loc=6)
         self.canvas_temp.draw_idle()
         self.canvas_mfc.draw_idle()
+        self._df_ = None
+        # print(f'updating plotting status: took {ttime.time() - _start}')
+
 
 
     def _pad_dataset_sp(self, df, latest_time, delta_thresh=15):
@@ -1039,6 +1077,26 @@ class TempRampManager(object):
     def set_duration_on_rate(self):
         if self.rate:
             self.duration = self.temperature / self.rate
+
+
+
+class ArchiverReader(QObject):
+    finished = pyqtSignal()
+
+    def __init__(self, archiver, timewindow, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.timewindow = timewindow
+        self.archiver = archiver
+
+    def run(self):
+        self.now = ttime.time()
+        self.some_time_ago = self.now - 3600 * self.timewindow
+        df = self.archiver.tables_given_times(self.some_time_ago, self.now)
+        self._df_ = df
+
+        print(f'reading archiver took {ttime.time() - self.now}')
+        self.finished.emit()
+
 
 
 if __name__ == '__main__':
