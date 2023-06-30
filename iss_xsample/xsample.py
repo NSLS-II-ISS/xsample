@@ -44,6 +44,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                  rga_masses = [],
                  heater_enable1 = [],
                  ghs = [],
+                 switch_manifold = [],
                  RE = [],
                  archiver = [],
                  sample_envs_dict=[],
@@ -59,6 +60,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.rga_masses = rga_masses
         self.ghs = ghs
         self.mobile_gh_system = mobile_gh_system
+        self.switch_manifold = switch_manifold
 
         self.sample_envs_dict = sample_envs_dict
 
@@ -87,6 +89,23 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.comboBox_sample_envs.currentIndexChanged.connect(self.sample_env_selected)
         self.sample_env_selected()
 
+        '''Switching manifold'''
+
+        for element, valve in self.switch_manifold.items():
+            button = getattr(self, f'radioButton_switch_{element}_{valve.direction}')
+            button.setChecked(True)
+
+        switching_buttons = [self.radioButton_switch_ghs_reactor,
+                             self.radioButton_switch_cart_reactor,
+                             self.radioButton_switch_inert_reactor,
+                             self.radioButton_switch_ghs_exhaust,
+                             self.radioButton_switch_cart_exhaust,
+                             self.radioButton_switch_inert_exhaust]
+
+        for button in switching_buttons:
+            button.clicked.connect(self.actuate_switching_valve)
+
+
         self.gas_mapper = {'1': {0: 0, 4: 1, 2: 4, 3: 2, 1: 3},
                            '2': {0: 0, 2: 1, 3: 2},
                            '3': {0: 0, 1: 1, 2: 2},
@@ -103,7 +122,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
         #initializing mobile cart MFC readings
 
-        for indx_mfc in range(3):
+        for indx_mfc in range(4):
             mfc_widget = getattr(self, f'spinBox_cart_mfc{indx_mfc+1}_sp')
             mfc_widget.setValue(self.gas_cart[indx_mfc+1]['mfc'].sp.get())
             mfc_widget.editingFinished.connect(self.set_mfc_cart_flow)
@@ -624,7 +643,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         # _start = ttime.time()
         # print(f'updating ghs status: start')
         # update card MFC setpoints and readbacks
-        for indx in range(3):
+        for indx in range(4):
             mfc_rb_widget = getattr(self, f'spinBox_cart_mfc{indx + 1}_rb')
             rb = '{:.1f} sccm'.format(self.gas_cart[indx+1]['mfc'].rb.get())
             mfc_rb_widget.setText(rb)
@@ -648,12 +667,12 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                     status_label.setStyleSheet('background-color: rgb(0,255,0)')
             else:
                 status_label.setStyleSheet('background-color: rgb(171,171,171)')
-
-            vlv_status = self.gas_cart[indx+1]['vlv'].status.get()
-            if vlv_status:
-                getattr(self, f'label_cart_vlv{indx + 1}_status').setStyleSheet('background-color: rgb(0,255,0)')
-            else:
-                getattr(self, f'label_cart_vlv{indx + 1}_status').setStyleSheet('background-color: rgb(255,0,0)')
+            if self.gas_cart[indx+1]['vlv'] is not None:
+                vlv_status = self.gas_cart[indx+1]['vlv'].status.get()
+                if vlv_status:
+                    getattr(self, f'label_cart_vlv{indx + 1}_status').setStyleSheet('background-color: rgb(0,255,0)')
+                else:
+                    getattr(self, f'label_cart_vlv{indx + 1}_status').setStyleSheet('background-color: rgb(255,0,0)')
 
         # Check rector/exhaust status
         for indx_ch in range(2):
@@ -720,6 +739,17 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         else:
             self.total_flow_meter.sp.set(0)
         self.label_total_flow.setText(f'{str(self.total_flow_meter.get().rb)} sccm')
+
+        for element, valve in self.switch_manifold.items():
+            valve_reactor_label = getattr(self, f'label_switch_{element}_reactor')
+            valve_exhaust_label = getattr(self, f'label_switch_{element}_exhaust')
+            if valve.state.get() == 1:
+                valve_reactor_label.setStyleSheet('background-color: rgb(0,255,0)')
+                valve_exhaust_label.setStyleSheet('background-color: rgb(255,0,0)')
+            else:
+                valve_reactor_label.setStyleSheet('background-color: rgb(255,0,0)')
+                valve_exhaust_label.setStyleSheet('background-color: rgb(0,255,0)')
+
         # print(f'updating ghs status: took {ttime.time() - _start}')
 
     def update_sample_env_status(self):
@@ -987,6 +1017,18 @@ class XsampleGui(*uic.loadUiType(ui_path)):
             self.ghs['channels'][ch_num]['reactor'].set(1)
             #ttime.sleep(2)
             self.ghs['channels'][ch_num]['exhaust'].set(0)
+
+    def actuate_switching_valve(self):
+        sender = QObject()
+        sender_object = sender.sender()
+        sender_name = sender_object.objectName()
+        for element, valve in self.switch_manifold.items():
+            if element in sender_name:
+                if 'exhaust' in sender_name:
+                    valve.to_exhaust()
+                elif 'reactor' in sender_name:
+                    valve.to_reactor()
+                break
 
     def toggle_bypass_bubbler(self):
         sender = QObject()
