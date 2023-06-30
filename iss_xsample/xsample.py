@@ -19,7 +19,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import bluesky.plan_stubs as bps
 
 # checkBox_ch1_mnf1_enable
-
+import threading
 from matplotlib.figure import Figure
 from isstools.elements.figure_update import update_figure
 from datetime import timedelta, datetime
@@ -187,7 +187,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.spinBox_steps.valueChanged.connect(self.manage_number_of_steps)
         self.tableWidget_program.cellChanged.connect(self.handle_program_changes)
 
-        self.pushButton_visualize_program.clicked.connect(self.manage_duration_n_rate)
+        self.pushButton_visualize_program.clicked.connect(self.parse_and_vizualize_program)
         self.pushButton_export.clicked.connect(self.save_gas_program)
         self.pushButton_load.clicked.connect(self.load_gas_program)
         self.pushButton_reset.clicked.connect(self.reset_gas_program)
@@ -201,7 +201,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                                   'N2': 5,
                                   'Ar': 6,
                                   'O2': 7,
-                                  'CO-ch': 8,
+                                  #'CO-ch': 8,
                                   'CO2': 9}
         for indx in range(5):
             combo = getattr(self, f'comboBox_gas{indx + 1}')
@@ -503,7 +503,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                 else:
                     self.process_program_steps[col][gas_key] = None
 
-    def manage_duration_n_rate(self):
+    def parse_and_vizualize_program(self):
         self.create_gas_program_dict()
 
         # previous_temp = 25
@@ -747,20 +747,28 @@ class XsampleGui(*uic.loadUiType(ui_path)):
             self.label_program_status.setText('OFF')
 
     def read_archiver(self):
-        self.thread = QThread()
-        self.archiver_reader = ArchiverReader(self.archiver, self.doubleSpinBox_timewindow.value())
-        self.archiver_reader.moveToThread(self.thread)
-        self.thread.started.connect(self.archiver_reader.run)
-        self.archiver_reader.finished.connect(self._read_archiver)
-        self.archiver_reader.finished.connect(self.thread.quit)
-        self.archiver_reader.finished.connect(self.archiver_reader.deleteLater)
-        self.thread.finished.connect(self.thread.deleteLater)
+        self.thread = threading.Thread(target=self._read_archiver, daemon=True)
         self.thread.start()
 
+        # self.thread = QThread()
+        # self.archiver_reader = ArchiverReader(self.archiver, self.doubleSpinBox_timewindow.value())
+        # self.archiver_reader.moveToThread(self.thread)
+        # self.thread.started.connect(self.archiver_reader.run)
+        # self.archiver_reader.finished.connect(self._read_archiver)
+        # self.archiver_reader.finished.connect(self.thread.quit)
+        # self.archiver_reader.finished.connect(self.archiver_reader.deleteLater)
+        # self.thread.finished.connect(self.thread.deleteLater)
+        # self.thread.start()
+
     def _read_archiver(self):
-        self._df_ = self.archiver_reader._df_.copy()
-        self.now = self.archiver_reader.now
-        self.some_time_ago = self.archiver_reader.some_time_ago
+        self.now = ttime.time()
+        self.timewindow = self.doubleSpinBox_timewindow.value()
+        self.some_time_ago = self.now - 3600 * self.timewindow
+        df = self.archiver.tables_given_times(self.some_time_ago, self.now)
+        self._df_ = df
+        # self._df_ = self.archiver_reader._df_.copy()
+        # self.now = self.archiver_reader.now
+        # self.some_time_ago = self.archiver_reader.some_time_ago
 
 
     def update_plotting_status(self):
@@ -936,15 +944,18 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
 
     def start_program(self):
-        self.visualize_program()
+        # self.visualize_program()
+        self.parse_and_vizualize_program()
         self.program_plot_moving_flag = False
         self.current_sample_env.ramp_start(self.process_program)
 
     def pause_program(self, value):
         if value == 1:
             self.current_sample_env.ramp_pause()
+            self.push_start_program.setEnabled(False)
         else:
             self.current_sample_env.ramp_continue()
+            self.push_start_program.setEnabled(True)
 
     def stop_program(self):
         self.current_sample_env.ramp_stop()
@@ -1089,10 +1100,13 @@ class ArchiverReader(QObject):
         self.archiver = archiver
 
     def run(self):
-        self.now = ttime.time()
-        self.some_time_ago = self.now - 3600 * self.timewindow
-        df = self.archiver.tables_given_times(self.some_time_ago, self.now)
-        self._df_ = df
+        try:
+            self.now = ttime.time()
+            self.some_time_ago = self.now - 3600 * self.timewindow
+            df = self.archiver.tables_given_times(self.some_time_ago, self.now)
+            self._df_ = df
+        except:
+            pass
 
         # print(f'reading archiver took {ttime.time() - self.now}')
         self.finished.emit()
