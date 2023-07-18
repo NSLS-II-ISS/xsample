@@ -236,6 +236,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         for i in range(1, 6):
             getattr(self, 'comboBox_gas' + str(i)).setCurrentIndex(0)
             item = QtWidgets.QTableWidgetItem(str(0))
+            item.setCheckState(2)
             self.tableWidget_program.setItem(0, i+2, item)
 
         self.current_sample_env.ramp_stop()
@@ -328,8 +329,6 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                                                           'Flow rate 5, sccm'
                                                           ))
 
-
-
     def manage_number_of_steps(self):
         no_of_steps = self.spinBox_steps.value()
         self.tableWidget_program.setColumnCount(no_of_steps)
@@ -345,12 +344,8 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                 flow_rate = self.tableWidget_program.item(_row, _column)
                 if not flow_rate:
                     item = QtWidgets.QTableWidgetItem('0')
+                    item.setCheckState(2)
                     self.tableWidget_program.setItem(_row, _column, item)
-
-
-
-
-
 
 
 
