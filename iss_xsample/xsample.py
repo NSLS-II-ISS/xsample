@@ -358,30 +358,32 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         def ramp_driven(column, t_range):
             ramp_rate = self.tableWidget_program.item(1, column).text()
             try:
-                ramp_rate = int(ramp_rate)
+                ramp_rate = int(float(ramp_rate))
                 duration = t_range / ramp_rate
                 item = QtWidgets.QTableWidgetItem(str(duration))
                 item.setForeground(QtGui.QBrush(QtGui.QColor(78, 190, 181)))
                 self.tableWidget_program.setItem(2, column, item)
                 self.tableWidget_program.item(1, column).setForeground(QtGui.QBrush(QtGui.QColor(0, 0, 0)))
                 self.step_priority[column] = 1  # one is priority on ramp
-            except:
+            except Exception as e:
                 message_box('Error 5', 'Non numerical value entered. Resetting to default value. Please check')
+                print(e)
                 item = QtWidgets.QTableWidgetItem('10')
                 self.tableWidget_program.setItem(1, column, item)
 
         def duration_driven(column, t_range):
             duration = self.tableWidget_program.item(2, column).text()
             try:
-                duration = int(duration)
+                duration = int(float(duration))
                 ramp = t_range / duration
                 item = QtWidgets.QTableWidgetItem(str(ramp))
                 item.setForeground(QtGui.QBrush(QtGui.QColor(78, 190, 181)))
                 self.tableWidget_program.setItem(1, column, item)
                 self.tableWidget_program.item(2, column).setForeground(QtGui.QBrush(QtGui.QColor(0, 0, 0)))
                 self.step_priority[column] = 2  # one is priority on duration
-            except:
+            except Exception as e:
                 message_box('Error 4','Non numerical value entered. Resetting to default value. Please check')
+                print(e)
                 item = QtWidgets.QTableWidgetItem('10')
                 self.tableWidget_program.setItem(2, column, item)
         self.tableWidget_program.cellChanged.disconnect(self.handle_program_changes)
@@ -392,9 +394,9 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         if column > 0:
             if self.tableWidget_program.item(0, column - 1):
                 if self.tableWidget_program.item(0, column - 1).text()!= '':
-                    previous_temperature = int(self.tableWidget_program.item(0, column - 1).text())
+                    previous_temperature = int(float(self.tableWidget_program.item(0, column - 1).text()))
             if self.tableWidget_program.item(0, column):
-                temperature = int(self.tableWidget_program.item(0, column).text())
+                temperature = int(float(self.tableWidget_program.item(0, column).text()))
         else:
             previous_temperature = np.round(sample_env.pv.get())
             if previous_temperature >1300:
@@ -402,7 +404,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                 previous_temperature= 25
             if self.tableWidget_program.item(0, column):
                 if self.tableWidget_program.item(0, column).text() != '':
-                    temperature = int(self.tableWidget_program.item(0, column).text())
+                    temperature = int(float(self.tableWidget_program.item(0, column).text()))
         if temperature and previous_temperature:
             t_range = temperature - previous_temperature
             if row == 0:
