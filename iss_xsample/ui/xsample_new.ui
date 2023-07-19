@@ -4422,7 +4422,7 @@ system</string>
       <rect>
        <x>220</x>
        <y>320</y>
-       <width>141</width>
+       <width>151</width>
        <height>31</height>
       </rect>
      </property>
@@ -4431,7 +4431,7 @@ system</string>
        <widget class="QLabel" name="label_22">
         <property name="maximumSize">
          <size>
-          <width>16777215</width>
+          <width>70</width>
           <height>20</height>
          </size>
         </property>
@@ -4449,7 +4449,7 @@ system</string>
        <widget class="QSpinBox" name="spinBox_steps">
         <property name="maximumSize">
          <size>
-          <width>200</width>
+          <width>50</width>
           <height>20</height>
          </size>
         </property>
@@ -4556,31 +4556,12 @@ system</string>
      <widget class="QWidget" name="horizontalLayoutWidget_5">
       <layout class="QHBoxLayout" name="horizontalLayout_5">
        <item>
-        <widget class="QRadioButton" name="radioButton_f1_1">
+        <widget class="QComboBox" name="comboBox_source_of_gas1">
          <property name="maximumSize">
           <size>
-           <width>50</width>
+           <width>100</width>
            <height>16777215</height>
           </size>
-         </property>
-         <property name="text">
-          <string>1</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QRadioButton" name="radioButton_f1_2">
-         <property name="maximumSize">
-          <size>
-           <width>50</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>2</string>
          </property>
         </widget>
        </item>
@@ -4599,31 +4580,12 @@ system</string>
      <widget class="QWidget" name="horizontalLayoutWidget_6">
       <layout class="QHBoxLayout" name="horizontalLayout_6">
        <item>
-        <widget class="QRadioButton" name="radioButton_f2_1">
+        <widget class="QComboBox" name="comboBox_source_of_gas2">
          <property name="maximumSize">
           <size>
-           <width>50</width>
+           <width>100</width>
            <height>16777215</height>
           </size>
-         </property>
-         <property name="text">
-          <string>1</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QRadioButton" name="radioButton_f2_2">
-         <property name="maximumSize">
-          <size>
-           <width>50</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>2</string>
          </property>
         </widget>
        </item>
@@ -4642,31 +4604,12 @@ system</string>
      <widget class="QWidget" name="horizontalLayoutWidget_7">
       <layout class="QHBoxLayout" name="horizontalLayout_7">
        <item>
-        <widget class="QRadioButton" name="radioButton_f3_1">
+        <widget class="QComboBox" name="comboBox_source_of_gas3">
          <property name="maximumSize">
           <size>
-           <width>50</width>
+           <width>100</width>
            <height>16777215</height>
           </size>
-         </property>
-         <property name="text">
-          <string>1</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QRadioButton" name="radioButton_f3_2">
-         <property name="maximumSize">
-          <size>
-           <width>50</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>2</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -4685,31 +4628,12 @@ system</string>
      <widget class="QWidget" name="horizontalLayoutWidget_8">
       <layout class="QHBoxLayout" name="horizontalLayout_8">
        <item>
-        <widget class="QRadioButton" name="radioButton_f4_1">
+        <widget class="QComboBox" name="comboBox_source_of_gas4">
          <property name="maximumSize">
           <size>
-           <width>50</width>
+           <width>100</width>
            <height>16777215</height>
           </size>
-         </property>
-         <property name="text">
-          <string>1</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QRadioButton" name="radioButton_f4_2">
-         <property name="maximumSize">
-          <size>
-           <width>50</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>2</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -4728,31 +4652,12 @@ system</string>
      <widget class="QWidget" name="horizontalLayoutWidget_9">
       <layout class="QHBoxLayout" name="horizontalLayout_9">
        <item>
-        <widget class="QRadioButton" name="radioButton_f5_1">
+        <widget class="QComboBox" name="comboBox_source_of_gas5">
          <property name="maximumSize">
           <size>
-           <width>50</width>
+           <width>100</width>
            <height>16777215</height>
           </size>
-         </property>
-         <property name="text">
-          <string>1</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QRadioButton" name="radioButton_f5_2">
-         <property name="maximumSize">
-          <size>
-           <width>50</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>2</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
          </property>
         </widget>
        </item>

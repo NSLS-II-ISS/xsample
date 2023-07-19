@@ -212,22 +212,29 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.pushButton_reset.clicked.connect(self.reset_gas_program)
         self.process_program_steps = {}
 
-        self.combo_box_options = {'None': 0,
-                                  'CH4': 1,
-                                  'CO': 2,
-                                  'H2': 3,
-                                  'He': 4,
-                                  'N2': 5,
-                                  'Ar': 6,
-                                  'O2': 7,
-                                  #'CO-ch': 8,
-                                  'CO2': 9}
+        self.combo_box_options = {'None': ['None'],
+                                  'GHS Ch1': ['He', 'N2', 'Ar', 'O2'],
+                                  'GHS Ch2': ['He', 'N2', 'Ar', 'O2'],
+                                  'Gas cart': ['H2', 'CO', 'CH4'],
+                                  'Inert': ['He']}
+
         for indx in range(5):
-            combo = getattr(self, f'comboBox_gas{indx + 1}')
-            for option in self.combo_box_options.keys():
-                combo.addItem(option)
+            combo_source = getattr(self, f'comboBox_source_of_gas{indx + 1}')
+            combo_source.addItems(self.combo_box_options.keys())
+            combo_gas = getattr(self, f'comboBox_gas{indx + 1}')
+            combo_gas.addItems(self.combo_box_options['None'])
+            combo_source.currentIndexChanged.connect(self.update_comboBox_gas)
 
         ################## Gas program ###################
+
+    def update_comboBox_gas(self):
+        sender_object = QObject().sender()
+        indx = sender_object.objectName()[-1]
+        source_key = sender_object.currentText()
+        combo_gas = getattr(self, f'comboBox_gas{indx}')
+        combo_gas.clear()
+        combo_gas.addItems(self.combo_box_options[source_key])
+
 
     def reset_gas_program(self):
         self.tableWidget_program.setColumnCount(1)
@@ -255,20 +262,22 @@ class XsampleGui(*uic.loadUiType(ui_path)):
             pass
 
     def create_dataframe(self):
-        param = ['temp', 'duration', 'rate', 'flow1', 'flow2', 'flow3', 'flow4', 'flow5']
-        _ch = [0, 0, 0]
+        param = ['temp', 'duration', 'rate',
+                 'flow1', 'flow2', 'flow3', 'flow4', 'flow5']
+                 # 'to_reactor1', 'to_reactor2', 'to_reactor3', 'to_reactor4', 'to_reactor5']
+        _source = [0, 0, 0]
         _gas = [0, 0, 0]
         for i in range(1, 6):
             if self.process_program_steps[0]['flow_' + str(i)]:
-                _ch.append(self.process_program_steps[0]['flow_' + str(i)]['channel'])
+                _source.append(self.process_program_steps[0]['flow_' + str(i)]['source'])
                 _gas.append(self.process_program_steps[0]['flow_' + str(i)]['name'])
             else:
-                _ch.append(-1)
+                _source.append(-1)
                 _gas.append(-1)
 
         _df = pd.DataFrame()
         _df['param'] = param
-        _df['channel'] = _ch
+        _df['source'] = _source
         _df['gas'] = _gas
 
         for i, key in enumerate(self.process_program_steps.keys()):
@@ -282,7 +291,15 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                 else:
                     _value.append(-1)
             _df[i + 1] = _value
-
+            _to_reactor_value = [None] * 3 # for the temperature
+            for j in range(1, 6):
+                if self.process_program_steps[i]['flow_' + str(j)]:
+                    direction_string = 'reactor' if self.process_program_steps[i]['flow_' + str(j)]['to_reactor'] else 'exhaust'
+                    _to_reactor_value.append(
+                        direction_string)
+                else:
+                    _to_reactor_value.append(-1)
+            _df[f'direction_{i + 1}'] = _to_reactor_value
         return _df
 
     def load_gas_program(self):
@@ -295,30 +312,37 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
         try:
             self.create_table_using_xlsx_file(path)
-        except:
-            pass
+        except Exception as e:
+            print(f'Error loading file from {path}')
+            print(e)
 
     def create_table_using_xlsx_file(self, path):
         _df = pd.read_excel(path, index_col=0)
-        no_of_steps = len(_df.columns) - 3
+        no_of_steps = int((len(_df.columns) - 3) / 2)
         self.tableWidget_program.setColumnCount(no_of_steps)
         self.tableWidget_program.setRowCount(8)
 
-        for i, ch in enumerate(_df['channel'][3:], start=1):
-            if ch == 1:
-                getattr(self, 'radioButton_f' + str(i) + '_' + str(ch)).setChecked(True)
-            elif ch == 2:
-                getattr(self, 'radioButton_f' + str(i) + '_' + str(ch)).setChecked(True)
+        for i, source in enumerate(_df['source'][3:], start=1):
+            if type(source) is str:
+                getattr(self, f'comboBox_source_of_gas{i}').setCurrentText(source)
+            else:
+                getattr(self, f'comboBox_source_of_gas{i}').setCurrentIndex(0)
 
         for i, gas in enumerate(_df['gas'][3:], start=1):
             if type(gas) is str:
-                getattr(self, 'comboBox_gas' + str(i)).setCurrentIndex(self.combo_box_options[gas])
+                getattr(self, f'comboBox_gas{i}').setCurrentText(gas)
             else:
-                getattr(self, 'comboBox_gas' + str(i)).setCurrentIndex(0)
+                getattr(self, f'comboBox_gas{i}').setCurrentIndex(0)
 
         for step in range(1, no_of_steps + 1):
-            for i, value in enumerate(_df[step]):
+            for i, (value, direction) in enumerate(zip(_df[step], _df[f'direction_{step}'])):
                 item = QtWidgets.QTableWidgetItem(str(value))
+                print(direction, type(direction))
+                if type(direction) is str:
+                    if direction == 'reactor':
+                        item.setCheckState(2)
+                    else:
+                        item.setCheckState(0)
                 self.tableWidget_program.setItem(i, step - 1, item)
 
     def init_table_widget(self):
@@ -427,6 +451,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                 flag = False
             if flag == False:
                 item = QtWidgets.QTableWidgetItem('0')
+                item.setCheckState(2)
                 self.tableWidget_program.setItem(row, column, item)
             if flag == True:
                 for j in range(self.spinBox_steps.value()):
@@ -439,6 +464,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                             _is_empty = True
                         if _is_empty:
                             item = QtWidgets.QTableWidgetItem('0')
+                            item.setCheckState(2)
                             self.tableWidget_program.setItem(row, j, item)
 
 
@@ -504,12 +530,10 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
                 if _tmp[gas_key]:
                     self.process_program_steps[col][gas_key] = {}
-                    ch = check_status_of_radioButton(j - 2)
-                    self.process_program_steps[col][gas_key]['channel'] = ch
-                    self.process_program_steps[col][gas_key]['name'] = getattr(self,
-                                                                           'comboBox_gas' + str(
-                                                                               j - 2)).currentText()
-
+                    # ch = check_status_of_radioButton(j - 2)
+                    self.process_program_steps[col][gas_key]['source'] = getattr(self, f'comboBox_source_of_gas{j - 2}').currentText()
+                    self.process_program_steps[col][gas_key]['name'] = getattr(self, f'comboBox_gas{j - 2}').currentText()
+                    self.process_program_steps[col][gas_key]['to_reactor'] = _tmp[gas_key].checkState() == 2
                     try:
                         _value = float(_tmp[gas_key].text())
                         self.process_program_steps[col][gas_key]['flow'] = float(_tmp[gas_key].text())
@@ -583,9 +607,11 @@ class XsampleGui(*uic.loadUiType(ui_path)):
             #     times.insert(0, 0)
             #     flows[df.loc[indx]['gas']] = times
             flows[f'flowgas{indx-2}'] = df.loc[indx]['gas']
-            flows[f'flowchannel{indx - 2}'] = df.loc[indx]['channel']
-            flows[f'flowprog{indx - 2}'] = df.loc[indx][3:].tolist()
-            flows[f'flowprog{indx - 2}'].insert(0,0)
+            flows[f'flowsource{indx - 2}'] = df.loc[indx]['source']
+            flows[f'flowprog{indx - 2}'] = df.loc[indx][3::2].tolist()
+            flows[f'flowprog{indx - 2}'].insert(0, 0)
+            flows[f'flowdirection{indx - 2}'] = df.loc[indx][4::2].tolist()
+            flows[f'flowdirection{indx - 2}'].insert(0, 0)
         self.process_program= {**self.process_program, **flows}
 
     def visualize_temperature_program(self):
