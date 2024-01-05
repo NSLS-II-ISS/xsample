@@ -95,12 +95,15 @@ class XsampleGui(*uic.loadUiType(ui_path)):
             button = getattr(self, f'radioButton_switch_{element}_{valve.direction}')
             button.setChecked(True)
 
-        switching_buttons = [self.radioButton_switch_ghs_reactor,
+        switching_buttons = [self.radioButton_switch_ghs_ch1_reactor,
+                             self.radioButton_switch_ghs_ch2_reactor,
                              self.radioButton_switch_cart_reactor,
-                             self.radioButton_switch_inert_reactor,
-                             self.radioButton_switch_ghs_exhaust,
+                             # self.radioButton_switch_inert_reactor,
+                             self.radioButton_switch_ghs_ch1_exhaust,
+                             self.radioButton_switch_ghs_ch2_exhaust,
                              self.radioButton_switch_cart_exhaust,
-                             self.radioButton_switch_inert_exhaust]
+                             # self.radioButton_switch_inert_exhaust
+                             ]
 
         for button in switching_buttons:
             button.clicked.connect(self.actuate_switching_valve)
@@ -215,8 +218,8 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.combo_box_options = {'None': ['None'],
                                   'GHS Ch1': ['He', 'N2', 'Ar', 'O2', 'CO2', 'C2H4'],
                                   'GHS Ch2': ['He', 'N2', 'Ar', 'O2', 'CO2', 'C2H4'],
-                                  'Gas cart': ['H2', 'CO', 'CH4'],
-                                  'Inert': ['He']}
+                                  'Gas cart': ['H2', 'CO', 'CH4']}#,
+                                  # 'Inert': ['He']}
 
         for indx in range(5):
             combo_source = getattr(self, f'comboBox_source_of_gas{indx + 1}')
