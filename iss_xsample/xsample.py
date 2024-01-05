@@ -213,8 +213,8 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.process_program_steps = {}
 
         self.combo_box_options = {'None': ['None'],
-                                  'GHS Ch1': ['He', 'N2', 'Ar', 'O2'],
-                                  'GHS Ch2': ['He', 'N2', 'Ar', 'O2'],
+                                  'GHS Ch1': ['He', 'N2', 'Ar', 'O2', 'CO2', 'C2H4'],
+                                  'GHS Ch2': ['He', 'N2', 'Ar', 'O2', 'CO2', 'C2H4'],
                                   'Gas cart': ['H2', 'CO', 'CH4'],
                                   'Inert': ['He']}
 
@@ -845,13 +845,15 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         for rga_mass in self.rga_masses:
             masses.append(str(rga_mass.get()))
 
+        # put -5 in the winter, -4 in the summer
+        time_delta = -5
+
         update_figure([self.figure_rga.ax], self.toolbar_rga, self.canvas_rga)
         for rga_ch, mass in zip(self.rga_channels, masses):
             dataset = self._df_[rga_ch.name]
             indx = rga_ch.name[-1]
             if getattr(self, f'checkBox_rga{indx}').isChecked():
-                # put -5 in the winter, -4 in the summer
-                time_delta = -4
+
                 self.figure_rga.ax.plot(dataset['time'] + timedelta(hours=time_delta), dataset['data'], label=f'{mass} amu')
         self.figure_rga.ax.grid(alpha=0.4)
         self.figure_rga.ax.xaxis.set_major_formatter(data_format)
@@ -872,8 +874,6 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                     dataset_mfc_cart = self._df_['mfc_cart_' + __gas_cart[j - 1] + '_rb']
                     indx_gc = j
                     if getattr(self, f'checkBox_ch3_mfc{indx_gc}').isChecked():
-                        # put -5 in the winter, -4 in the summer
-                        time_delta = -4
                         self.figure_mfc.ax.plot(dataset_mfc_cart['time'] + timedelta(hours=time_delta),
                                                 dataset_mfc_cart['data'],
                                                 label=f'Gas cart {__gas_cart[j - 1]}')
@@ -884,8 +884,6 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                     indx_mfc = i
 
                     if getattr(self, f'checkBox_ch{channels_key}_mfc{indx_mfc}').isChecked():
-                        # put -5 in the winter, -4 in the summer
-                        time_delta = -4
                         self.figure_mfc.ax.plot(dataset_mfc['time'] + timedelta(hours=time_delta), dataset_mfc['data'],
                                                 label=f'ch{channels_key} mfc{indx_mfc}')
 
