@@ -23,6 +23,7 @@ import threading
 from matplotlib.figure import Figure
 from isstools.elements.figure_update import update_figure
 from datetime import timedelta, datetime
+import pytz
 import time as ttime
 from isstools.dialogs.BasicDialogs import message_box
 from iss_xsample.gas_type import GasType
@@ -48,6 +49,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                  RE = [],
                  archiver = [],
                  sample_envs_dict=[],
+                 reset_rga=None,
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
@@ -61,6 +63,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.ghs = ghs
         self.mobile_gh_system = mobile_gh_system
         self.switch_manifold = switch_manifold
+        self.reset_rga = reset_rga
 
         self.sample_envs_dict = sample_envs_dict
 
@@ -78,6 +81,8 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.push_stop_program.clicked.connect(self.stop_program)
         self.pushButton_reset_cart.clicked.connect(self.reset_cart_plc)
         self.pushButton_switch.clicked.connect(self.switch_gases)
+
+        self.pushButton_reset_rga.clicked.connect(self.reset_rga)
 
         self.process_program = None
         self.plot_program_flag = False
@@ -548,36 +553,6 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
     def parse_and_vizualize_program(self):
         self.create_gas_program_dict()
-
-        # previous_temp = 25
-        # for i, key in enumerate(self.process_program_steps.keys()):
-        #     if self.process_program_steps[key]['temp']:
-        #
-        #         print(f"previous_temp: {previous_temp}")
-        #
-        #         if self.process_program_steps[key]['duration'] and (self.process_program_steps[key]['duration'] > 0):
-        #             self.process_program_steps[key]['rate'] = np.around(
-        #                 abs((self.process_program_steps[key]['temp'] - previous_temp) / self.process_program_steps[key][
-        #                     'duration']), 2)
-        #
-        #             print(f"rate: {self.process_program_steps[key]['rate']}")
-        #
-        #             item = QtWidgets.QTableWidgetItem(str(self.process_program_steps[key]['rate']))
-        #             self.tableWidget_program.setItem(2, i, item)
-        #             previous_temp = self.process_program_steps[key]['temp']
-        #             continue
-        #         elif self.process_program_steps[key]['rate'] and (self.process_program_steps[key]['rate'] > 0):
-        #
-        #             self.process_program_steps[key]['duration'] = np.around(
-        #                 abs((self.process_program_steps[key]['temp'] - previous_temp) / self.process_program_steps[key][
-        #                     'rate']), 2)
-        #
-        #             print(f"duration: {self.process_program_steps[key]['duration']}")
-        #
-        #             item = QtWidgets.QTableWidgetItem(str(self.process_program_steps[key]['duration']))
-        #             self.tableWidget_program.setItem(1, i, item)
-        #             previous_temp = self.process_program_steps[key]['temp']
-        #
         self.visualize_temperature_program()
 
 
@@ -834,30 +809,32 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
         # _start = ttime.time()
         # print(f'updating plotting status: start')
-        data_format = mdates.DateFormatter('%H:%M:%S')
+        data_format = mdates.DateFormatter('%H:%M:%S', tz='US/Eastern')
 
+        self._xlim_num = [pd.Timestamp(datetime.fromtimestamp(self.some_time_ago, tz=pytz.timezone('US/Eastern'))),
+                          pd.Timestamp(datetime.fromtimestamp(self.now, tz=pytz.timezone('US/Eastern')))]
 
-        self._xlim_num = [self.some_time_ago, self.now]
+        # self._xlim_num = [self.some_time_ago, self.now]
         # handling the xlim extension due to the program vizualization
         if self.plot_program_flag:
             if self._plot_temp_program is not None:
-                self._xlim_num[1] = np.max([self._plot_temp_program['time_s'].iloc[-1], self._xlim_num[1]])
-        _xlim = [ttime.ctime(self._xlim_num[0]), ttime.ctime(self._xlim_num[1])]
+                # self._plot_temp_program['time_s'] = self._plot_temp_program['time_s'].apply(lambda x: pd.Timestamp(datetime.fromtimestamp(x, tz=pytz.timezone('US/Eastern'))))
+                self._xlim_num[1] = np.max([self._plot_temp_program['time'].iloc[-1], self._xlim_num[1]])
+        # _xlim = [ttime.ctime(self._xlim_num[0]), ttime.ctime(self._xlim_num[1])]
+        _xlim = self._xlim_num
 
         masses = []
         for rga_mass in self.rga_masses:
             masses.append(str(rga_mass.get()))
 
         # put -5 in the winter, -4 in the summer
-        time_delta = -5
-
+        # time_delta = -4
         update_figure([self.figure_rga.ax], self.toolbar_rga, self.canvas_rga)
         for rga_ch, mass in zip(self.rga_channels, masses):
             dataset = self._df_[rga_ch.name]
             indx = rga_ch.name[-1]
             if getattr(self, f'checkBox_rga{indx}').isChecked():
-
-                self.figure_rga.ax.plot(dataset['time'] + timedelta(hours=time_delta), dataset['data'], label=f'{mass} amu')
+                self.figure_rga.ax.plot(dataset['time'], dataset['data'], label=f'{mass} amu')
         self.figure_rga.ax.grid(alpha=0.4)
         self.figure_rga.ax.xaxis.set_major_formatter(data_format)
         self.figure_rga.ax.set_xlim(_xlim)
@@ -877,18 +854,14 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                     dataset_mfc_cart = self._df_['mfc_cart_' + __gas_cart[j - 1] + '_rb']
                     indx_gc = j
                     if getattr(self, f'checkBox_ch3_mfc{indx_gc}').isChecked():
-                        self.figure_mfc.ax.plot(dataset_mfc_cart['time'] + timedelta(hours=time_delta),
-                                                dataset_mfc_cart['data'],
-                                                label=f'Gas cart {__gas_cart[j - 1]}')
+                        self.figure_mfc.ax.plot(dataset_mfc_cart['time'], dataset_mfc_cart['data'], label=f'Gas cart {__gas_cart[j - 1]}')
 
             else:
                 for i in range(1, 9):
                     dataset_mfc = self._df_['ghs_ch'+channels_key+'_mfc'+str(i)+'_rb']
                     indx_mfc = i
-
                     if getattr(self, f'checkBox_ch{channels_key}_mfc{indx_mfc}').isChecked():
-                        self.figure_mfc.ax.plot(dataset_mfc['time'] + timedelta(hours=time_delta), dataset_mfc['data'],
-                                                label=f'ch{channels_key} mfc{indx_mfc}')
+                        self.figure_mfc.ax.plot(dataset_mfc['time'], dataset_mfc['data'], label=f'ch{channels_key} mfc{indx_mfc}')
 
         self.figure_mfc.ax.grid(alpha=0.4)
         self.figure_mfc.ax.xaxis.set_major_formatter(data_format)
@@ -904,9 +877,8 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         dataset_rb = self._df_['temp2']
         dataset_sp = self._df_['temp2_sp']
         dataset_sp = self._pad_dataset_sp(dataset_sp, dataset_rb['time'].values[-1])
-
-        self.figure_temp.ax.plot(dataset_sp['time'] + timedelta(hours=time_delta), dataset_sp['data'], label='T setpoint')
-        self.figure_temp.ax.plot(dataset_rb['time'] + timedelta(hours=time_delta), dataset_rb['data'], label='T readback')
+        self.figure_temp.ax.plot(dataset_sp['time'], dataset_sp['data'], label='T setpoint')
+        self.figure_temp.ax.plot(dataset_rb['time'], dataset_rb['data'], label='T readback')
         self.plot_pid_program()
 
         self.figure_temp.ax.grid(alpha=0.4)
@@ -961,10 +933,12 @@ class XsampleGui(*uic.loadUiType(ui_path)):
     def update_plot_program_data(self):
         if self.process_program is not None:
             times = (ttime.time() + np.array(self.process_program['times']))
-            datetimes = [datetime.fromtimestamp(i).strftime('%Y-%m-%d %H:%M:%S') for i in times]
-            self._plot_temp_program = pd.DataFrame({'time': pd.to_datetime(datetimes, format='%Y-%m-%d %H:%M:%S'),
+            # datetimes = [datetime.fromtimestamp(i, tz=pytz.timezone('US/Eastern')).strftime('%Y-%m-%d %H:%M:%S') for i in times]
+            self._plot_temp_program = pd.DataFrame({#'time': [pd.Timestamp(i) for i in datetimes],
                                                     'setpoints': self.process_program['setpoints'],
                                                     'time_s' : times})
+            self._plot_temp_program['time'] = self._plot_temp_program['time_s'].apply( lambda x: pd.Timestamp(datetime.fromtimestamp(x, tz=pytz.timezone('US/Eastern'))))
+
 
     def plot_pid_program(self):
         if self.plot_program_flag:
@@ -1136,6 +1110,11 @@ class XsampleGui(*uic.loadUiType(ui_path)):
             self.radioButton_ch2_reactor.setChecked(True)
         else:
             message_box('Error', 'Check valve status')
+
+
+    def reset_rga(self):
+        for indx, rga_mass in enumerate(self.rga_masses):
+            print(getattr(self, f'spinBox_rga_mass{indx + 1}').value())
 
 
 
