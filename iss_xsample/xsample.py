@@ -35,6 +35,7 @@ from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
 
 # gui_form = uic.loadUiType(ui_path)[0]  # Load the UI
+# comment
 
 class XsampleGui(*uic.loadUiType(ui_path)):
 
