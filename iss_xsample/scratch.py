@@ -398,3 +398,15 @@ for step in range(1, no_of_steps + 1):
 
 
 
+for index, entry in enumerate(d):
+   source = entry['source']
+   to_reactor = entry['to_reactor']
+   if  source in ['GHS Ch1', 'GHS Ch2','Gas cart']:
+       for index_compare in range((index+1),5):
+           print(index_compare)
+           if (d[index_compare]['source'] ==  source) and (d[index_compare]['to_reactor'] !=  to_reactor):
+                print('BROKEN')
+
+
+
+

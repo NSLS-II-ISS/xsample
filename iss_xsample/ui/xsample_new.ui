@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>2117</width>
+    <width>2190</width>
     <height>1232</height>
    </rect>
   </property>
@@ -3656,7 +3656,7 @@ system Ch1</string>
           </size>
          </property>
          <property name="text">
-          <string>Gas cart</string>
+          <string>Gas Cart</string>
          </property>
         </widget>
        </item>
@@ -4791,6 +4791,319 @@ system Ch2</string>
       </layout>
      </widget>
     </widget>
+   </widget>
+   <widget class="QPushButton" name="pushButton_reset_rga">
+    <property name="geometry">
+     <rect>
+      <x>2100</x>
+      <y>60</y>
+      <width>71</width>
+      <height>71</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Reset 
+RGA</string>
+    </property>
+   </widget>
+   <widget class="QWidget" name="gridLayoutWidget_10">
+    <property name="geometry">
+     <rect>
+      <x>300</x>
+      <y>950</y>
+      <width>261</width>
+      <height>241</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="gridLayout_10">
+     <item row="2" column="0">
+      <widget class="QPushButton" name="pushButton_vacuum_on">
+       <property name="text">
+        <string>Vacuum On</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QGroupBox" name="groupBox_13">
+       <property name="title">
+        <string>Oxygen Trap</string>
+       </property>
+       <widget class="QWidget" name="gridLayoutWidget_18">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>30</y>
+          <width>111</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_18">
+         <item row="1" column="0">
+          <widget class="QRadioButton" name="radioButton_valve3_close">
+           <property name="text">
+            <string>Close</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLabel" name="label_valve3_open">
+           <property name="maximumSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="label_valve3_close">
+           <property name="maximumSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QRadioButton" name="radioButton_valve3_open">
+           <property name="maximumSize">
+            <size>
+             <width>70</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Open</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QGroupBox" name="groupBox_11">
+       <property name="title">
+        <string>Bubbler</string>
+       </property>
+       <widget class="QWidget" name="gridLayoutWidget_16">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>30</y>
+          <width>111</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_16">
+         <item row="0" column="0">
+          <widget class="QRadioButton" name="radioButton_valve4_open">
+           <property name="maximumSize">
+            <size>
+             <width>70</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Open</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QRadioButton" name="radioButton_valve4_close">
+           <property name="text">
+            <string>Close</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="label_valve4_close">
+           <property name="maximumSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLabel" name="label_valve4_open">
+           <property name="maximumSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QGroupBox" name="groupBox_12">
+       <property name="title">
+        <string>Moisture Trap</string>
+       </property>
+       <widget class="QWidget" name="gridLayoutWidget_17">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>30</y>
+          <width>111</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_17">
+         <item row="0" column="1">
+          <widget class="QLabel" name="label_valve2_open">
+           <property name="maximumSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="label_valve2_close">
+           <property name="maximumSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QRadioButton" name="radioButton_valve2_close">
+           <property name="text">
+            <string>Close</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QRadioButton" name="radioButton_valve2_open">
+           <property name="maximumSize">
+            <size>
+             <width>70</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Open</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QPushButton" name="pushButton_vacuum_off">
+       <property name="text">
+        <string>Stop Vacuum</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QGroupBox" name="groupBox_10">
+       <property name="title">
+        <string>Vacuum Pump</string>
+       </property>
+       <widget class="QWidget" name="gridLayoutWidget_9">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>30</y>
+          <width>111</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_7">
+         <item row="0" column="0">
+          <widget class="QRadioButton" name="radioButton_valve1_open">
+           <property name="maximumSize">
+            <size>
+             <width>70</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Open</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLabel" name="label_valve1_open">
+           <property name="maximumSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QRadioButton" name="radioButton_valve1_close">
+           <property name="text">
+            <string>Close</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="label_valve1_close">
+           <property name="maximumSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QLabel" name="label_6">
+    <property name="geometry">
+     <rect>
+      <x>300</x>
+      <y>920</y>
+      <width>151</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Flow Conditioning</string>
+    </property>
    </widget>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>

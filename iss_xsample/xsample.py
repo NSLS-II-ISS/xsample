@@ -13,7 +13,7 @@ import pkg_resources
 from PyQt5 import QtGui, QtWidgets, QtCore, uic
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
-from PyQt5.Qt import QSplashScreen, QObject
+from PyQt5.Qt import QSplashScreen, QObject, QTimer
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, \
     NavigationToolbar2QT as NavigationToolbar
 import bluesky.plan_stubs as bps
@@ -29,6 +29,7 @@ from isstools.dialogs.BasicDialogs import message_box
 from iss_xsample.gas_type import GasType
 
 ui_path = pkg_resources.resource_filename('iss_xsample', 'ui/xsample_new.ui')
+# ui_path = pkg_resources.resource_filename('iss_xsample', 'ui/xsample_new_tab_version.ui')
 
 from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
@@ -50,6 +51,8 @@ class XsampleGui(*uic.loadUiType(ui_path)):
                  archiver = [],
                  sample_envs_dict=[],
                  reset_rga=None,
+                 flow_condition_valves = None,
+                 pdu = None,
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
@@ -64,6 +67,8 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.mobile_gh_system = mobile_gh_system
         self.switch_manifold = switch_manifold
         self.reset_rga = reset_rga
+        self.flow_condition_valves = flow_condition_valves
+        self.pdu = pdu
 
         self.sample_envs_dict = sample_envs_dict
 
@@ -83,6 +88,8 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         self.pushButton_switch.clicked.connect(self.switch_gases)
 
         self.pushButton_reset_rga.clicked.connect(self.reset_rga)
+        self.pushButton_vacuum_off.clicked.connect(self.set_vacuum_pump_off)
+        self.pushButton_vacuum_on.clicked.connect(self.set_vacuum_pump_on)
 
         self.process_program = None
         self.plot_program_flag = False
@@ -112,6 +119,40 @@ class XsampleGui(*uic.loadUiType(ui_path)):
 
         for button in switching_buttons:
             button.clicked.connect(self.actuate_switching_valve)
+
+
+        condition_valves_buttons = []
+        for i in range(1, 5):
+            string_close = f"radioButton_valve{i}_close"
+            string_open = f"radioButton_valve{i}_open"
+            condition_valves_buttons.append(getattr(self, string_open))
+            condition_valves_buttons.append(getattr(self, string_close))
+
+        for button in condition_valves_buttons:
+            button.clicked.connect(self.actuate_condition_valves)
+
+        # self.timer_vacuum_pump = QTimer(self)
+        # self.timer_vacuum_pump.setInterval(1000)
+        # self.timer_vacuum_pump.timeout.connect(self.update_vacuum_pump_timer)
+        # self.timer_vacuum_pump.start()
+        # self.flag = False
+        # self.count = 30000
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
         self.gas_mapper = {'1': {0: 0, 4: 1, 2: 4, 3: 2, 1: 3},
@@ -234,7 +275,29 @@ class XsampleGui(*uic.loadUiType(ui_path)):
             combo_source.currentIndexChanged.connect(self.update_comboBox_gas)
 
         ################## Gas program ###################
+    def actuate_condition_valves(self):
+        sender = QObject()
+        sender_object = sender.sender()
+        name = sender_object.objectName()
+        valve_name = name[12:18]
+        valve_status = name[19:]
 
+        if valve_status == 'close':
+            getattr(self.flow_condition_valves, valve_name).put(0)
+        elif valve_status == 'open':
+            getattr(self.flow_condition_valves, valve_name).put(1)
+
+
+    def set_vacuum_pump_off(self):
+        self.pdu.module7.put(0)
+
+    def set_vacuum_pump_on(self):
+        self.pdu.module7.put(1)
+
+
+    # def update_vacuum_pump_timer(self):
+    #     if self.flag:
+    #         pass
     def update_comboBox_gas(self):
         sender_object = QObject().sender()
         indx = sender_object.objectName()[-1]
@@ -754,6 +817,7 @@ class XsampleGui(*uic.loadUiType(ui_path)):
         # print(f'updating ghs status: took {ttime.time() - _start}')
 
     def update_sample_env_status(self):
+        # print("working sample env status")
         sample_env = self.current_sample_env
         self.label_pv_rb.setText(f'{sample_env.pv_name} RB: {np.round(sample_env.pv.get(), 2)} {sample_env.pv_units}')
         self.label_pv_sp.setText(f'{sample_env.pv_name} SP: {np.round(sample_env.pv_sp.get(), 2)} {sample_env.pv_units}')
