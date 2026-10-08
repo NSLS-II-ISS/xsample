@@ -1,0 +1,74 @@
+[build-system]
+requires = ["setuptools>=77", "setuptools-scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "iss-xsample"
+dynamic = ["version"]
+description = "Qt interface for ISS gas handling and sample temperature programs"
+readme = "README.rst"
+requires-python = ">=3.12"
+license = "BSD-3-Clause"
+authors = [{name = "Brookhaven National Lab", email = "dleshchev@bnl.gov"}]
+dependencies = [
+    "bluesky>=1.13,<2",
+    "matplotlib>=3.9,<4",
+    "numpy>=2,<3",
+    "openpyxl>=3.1.5,<4",
+    "pandas>=2.2,<4",
+    "PyQt5>=5.15.11,<6",
+]
+
+[project.optional-dependencies]
+dev = ["build>=1.2,<2", "pytest>=8,<10", "pytest-qt>=4.4,<5", "ruff>=0.11,<1"]
+docs = ["sphinx>=8,<10", "sphinx-rtd-theme>=3,<4"]
+
+[project.scripts]
+iss-xsample = "iss_xsample.__main__:main"
+
+[project.urls]
+Repository = "https://github.com/dleshchev/iss-xsample"
+
+[tool.setuptools.packages.find]
+include = ["iss_xsample*"]
+exclude = ["iss_xsample.tests*"]
+
+[tool.setuptools.package-data]
+iss_xsample = ["ui/*.ui"]
+
+[tool.setuptools_scm]
+fallback_version = "0.0.0"
+
+[tool.pytest.ini_options]
+testpaths = ["iss_xsample/tests"]
+qt_api = "pyqt5"
+
+[tool.ruff]
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
+
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[tool.pixi.dependencies]
+python = "3.12.*"
+
+[tool.pixi.pypi-dependencies]
+iss-xsample = {path = ".", editable = true, extras = ["dev", "docs"]}
+setuptools = ">=77"
+setuptools-scm = ">=8"
+
+[tool.pixi.tasks]
+test = {cmd = "pytest", env = {QT_QPA_PLATFORM = "offscreen"}}
+lint = "ruff check ."
+format = "ruff format ."
+format-check = "ruff format --check ."
+smoke = {cmd = "iss-xsample --smoke-test", env = {QT_QPA_PLATFORM = "offscreen"}}
+start = "iss-xsample"
+build = "python -m build --no-isolation"
+docs = "sphinx-build -W -b html docs/source docs/build/html"
+benchmark = "python benchmarks/setpoints.py"
+check = {depends-on = ["lint", "format-check", "test", "smoke"]}

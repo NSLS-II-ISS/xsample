@@ -1,28 +1,11 @@
-===================================
-Minimum Version of Python and NumPy
-===================================
+==================
+Supported versions
+==================
 
+Package metadata requires Python 3.11 or newer. The reproducible development
+and CI environment targets Python 3.12 on Linux x86-64.
 
-- This project supports at least the minor versions of Python
-  initially released 42 months prior to a planned project release
-  date.
-- The project will always support at least the 2 latest minor
-  versions of Python.
-- The project will support minor versions of ``numpy`` initially
-  released in the 24 months prior to a planned project release date or
-  the oldest version that supports the minimum Python version
-  (whichever is higher).
-- The project will always support at least the 3 latest minor
-  versions of NumPy.
-
-The minimum supported version of Python will be set to
-``python_requires`` in ``setup``.  All supported minor versions of
-Python will be in the test matrix and have binary artifacts built
-for releases.
-
-The project should adjust upward the minimum Python and NumPy
-version support on every minor and major release, but never on a
-patch release.
-
-This is consistent with NumPy `NEP 29
-<https://numpy.org/neps/nep-0029-deprecation_policy.html>`__.
+Runtime dependency ranges are maintained in ``pyproject.toml``; exact versions
+are recorded in ``pixi.lock``. The application uses PyQt5, NumPy 2, pandas 2.2
+or newer, Matplotlib 3.9 or newer, Bluesky 1.13 or newer, and openpyxl 3.1.5 or
+newer. Upper bounds are declared for major upgrades that need separate testing.

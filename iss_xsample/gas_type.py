@@ -1,59 +1,30 @@
-import os
-import re
-import sys
+"""Gas selection widget."""
 
-import matplotlib
-# matplotlib.use('WXAgg')
-import matplotlib.patches as mpatches
-import matplotlib.dates as mdates
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
-import pkg_resources
-from PyQt5 import QtGui, QtWidgets, QtCore, uic
-from PyQt5.Qt import QSplashScreen, QObject
-from PyQt5.QtCore import QSettings, QThread, pyqtSignal, QTimer, QDateTime
-from PyQt5.QtGui import QPixmap
-from PyQt5.Qt import Qt
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, \
-    NavigationToolbar2QT as NavigationToolbar
-import bluesky.plan_stubs as bps
+from importlib.resources import as_file, files
 
-# checkBox_ch1_mnf1_enable
+from PyQt5 import QtWidgets, uic
 
-from matplotlib.figure import Figure
-from isstools.elements.figure_update import update_figure
-from datetime import timedelta, datetime
-import time as ttime
-from isstools.dialogs.BasicDialogs import message_box
-
-ui_path = pkg_resources.resource_filename('iss_xsample', 'ui/gas_type.ui')
-
-from pandas.plotting import register_matplotlib_converters
-register_matplotlib_converters()
+with as_file(files("iss_xsample").joinpath("ui/gas_type.ui")) as ui_path:
+    _UiForm, _UiBase = uic.loadUiType(str(ui_path))
 
 
-class GasType(*uic.loadUiType(ui_path)):
-    def __init__(self,
-                 gas_cart = [],
-                 # total_flow_meter = None,
-                 # rga_channels = [],
-                 rga_masses = [],
-                 # heater_enable1 = [],
-                 ghs = [],
-                 RE = [],
-                 # archiver = [],
-                 gas_name = None,
-                 # sample_envs_dict=[],
-                 *args, **kwargs,
-                 ):
+class GasType(_UiForm, _UiBase):
+    def __init__(
+        self,
+        gas_cart=None,
+        rga_masses=None,
+        ghs=None,
+        RE=None,
+        gas_name=None,
+        *args,
+        **kwargs,
+    ):
         super().__init__(*args, **kwargs)
 
         self.setupUi(self)
         self.gas_cart = gas_cart
         self.ghs = ghs
         self.RE = RE
-        # self.archiver = archiver
 
         self.gas_name = gas_name
 
@@ -67,7 +38,7 @@ class GasType(*uic.loadUiType(ui_path)):
         self.lineEdit_gas_setpoint.returnPressed.connect(self.read_gas_flow)
 
         self.label_gas_select = QtWidgets.QLabel("     ")
-        self.label_gas_select.setStyleSheet('background-color: rgb(192,192,192)')
+        self.label_gas_select.setStyleSheet("background-color: rgb(192,192,192)")
         self.gridLayout_gas_type.addWidget(self.label_gas_select, 0, 2)
 
         self.checkBox_select_gas = QtWidgets.QCheckBox()
@@ -80,13 +51,14 @@ class GasType(*uic.loadUiType(ui_path)):
         _user_set_value_text = self.lineEdit_gas_setpoint.text()
         _user_set_value = float(_user_set_value_text.split()[0])
         self.lineEdit_gas_setpoint.setText(f"{_user_set_value} sccm")
+        self.add_selected_gas()
 
     def add_selected_gas(self):
-        if self.checkBox_select_gas.isChecked() == True:
-            self.label_gas_select.setStyleSheet('background-color: rgb(95,249,95)')
-            _user_set_value_text = self.lineEdit_gas_setpoint.text()
-            self.gas_list_with_flow.append(f"{self.gas_name} at {_user_set_value_text}")
-            # self.listWidget_gases.additems(self.gas_list_with_flow)
+        self.gas_list_with_flow.clear()
+        if self.checkBox_select_gas.isChecked():
+            self.label_gas_select.setStyleSheet("background-color: rgb(95,249,95)")
+            self.gas_list_with_flow.append(
+                f"{self.gas_name} at {self.lineEdit_gas_setpoint.text()}"
+            )
         else:
-            self.label_gas_select.setStyleSheet('background-color: rgb(192,192,192)')
-            self.gas_list_with_flow.pop(f"{self.gas_name} at {_user_set_value_text}")
+            self.label_gas_select.setStyleSheet("background-color: rgb(192,192,192)")

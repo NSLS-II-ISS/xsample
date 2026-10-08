@@ -1,0 +1,17 @@
+name: CI
+on: [push, pull_request]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: prefix-dev/setup-pixi@v0.9.0
+        with:
+          pixi-version: v0.71.3
+          cache: true
+      - run: pixi run --locked check
+      - run: pixi run --locked docs
+      - run: pixi run --locked build
